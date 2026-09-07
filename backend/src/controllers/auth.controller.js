@@ -1,102 +1,74 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const generateToken = require("../utils/generateToken");
+const asyncHandler = require("../utils/asyncHandler");
+const AppError = require("../utils/AppError");
 
-const register = async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
+const register = asyncHandler(async (req, res) => {
+    const { name, email, password } = req.body;
 
-        const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email });
 
-        if (existingUser) {
-            return res.status(409).json({
-                success: false,
-                message: "User already exists",
-            });
-        }
-
-        const user = await User.create({
-            name,
-            email,
-            password,
-        });
-
-        res.status(201).json({
-            success: true,
-            message: "User registered successfully",
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            },
-        });
-    } catch (error) {
-        console.error("Registration error:", error);
-
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+    if (existingUser) {
+        throw new AppError("User already exists", 409);
     }
-};
 
-const login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+    const user = await User.create({
+        name,
+        email,
+        password,
+    });
 
-        const user = await User
-            .findOne({ email })
-            .select("+password");
+    res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        },
+    });
+});
 
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid email or password",
-            });
-        }
+const login = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
 
-        if (!user.isActive) {
-            return res.status(403).json({
-                success: false,
-                message: "Your account is inactive",
-            });
-        }
+    const user = await User
+        .findOne({ email })
+        .select("+password");
 
-        const isPasswordMatch = await bcrypt.compare(
-            password,
-            user.password
-        );
-
-        if (!isPasswordMatch) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid email or password",
-            });
-        }
-
-        const token = generateToken(user);
-
-        res.status(200).json({
-            success: true,
-            message: "Login successful",
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            },
-        });
-    } catch (error) {
-        console.error("Login error:", error);
-
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+    if (!user) {
+        throw new AppError("Invalid email or password", 401);
     }
-};
+
+    if (!user.isActive) {
+        throw new AppError("Your account is inactive", 403);
+    }
+
+    const isPasswordMatch = await bcrypt.compare(
+        password,
+        user.password
+    );
+
+    if (!isPasswordMatch) {
+        throw new AppError("Invalid email or password", 401);
+    }
+
+    const token = generateToken(user);
+
+    res.status(200).json({
+        success: true,
+        message: "Login successful",
+        token,
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        },
+    });
+});
 
 const getMe = async (req, res) => {
     res.status(200).json({

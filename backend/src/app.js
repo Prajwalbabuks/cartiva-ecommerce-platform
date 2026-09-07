@@ -1,6 +1,7 @@
 const express = require("express");
 
-const authRouter = require("./routers/auth.route.js");
+const authRouter = require("./routers/auth.route");
+const errorMiddleware = require("./middlewares/error.middleware");
 
 const app = express();
 
@@ -14,5 +15,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/auth", authRouter);
+
+// Error handling middleware MUST be last
+app.use(errorMiddleware);
 
 module.exports = app;
