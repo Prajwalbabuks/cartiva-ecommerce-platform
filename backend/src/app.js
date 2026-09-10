@@ -2,6 +2,7 @@ const express = require("express");
 
 const authRouter = require("./routers/auth.route");
 const categoryRouter = require("./routers/category.route");
+const productRouter = require("./routers/product.route");
 const errorMiddleware = require("./middlewares/error.middleware");
 
 const app = express();
@@ -17,7 +18,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/categories", categoryRouter);
-
+app.use("/api/v1/products", productRouter);
 // Error handling middleware MUST be last
 app.use(errorMiddleware);
 
