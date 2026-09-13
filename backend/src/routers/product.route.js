@@ -2,6 +2,7 @@ const express = require("express");
 
 const {
     createProduct,
+    getProducts,
 } = require("../controllers/product.controller");
 
 const validate = require("../middlewares/validate");
@@ -20,6 +21,10 @@ router.post(
     authorize("admin"),
     validate(createProductSchema),
     createProduct
+);
+
+router.get("/", 
+      getProducts
 );
 
 module.exports = router;
