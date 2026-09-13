@@ -159,7 +159,102 @@ const getProducts = asyncHandler(async (req, res) => {
     });
 });
 
+
+const getProductById = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new AppError("Invalid product ID", 400);
+    }
+
+    const product = await Product.findOne({
+        _id: id,
+        isActive: true,
+    }).populate("category", "name slug");
+
+    if (!product) {
+        throw new AppError("Product not found", 404);
+    }
+
+    res.status(200).json({
+        success: true,
+        product,
+    });
+});
+
+const updateProduct = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new AppError("Invalid product ID", 400);
+    }
+
+    const product = await Product.findById(id);
+
+    if (!product) {
+        throw new AppError("Product not found", 404);
+    }
+
+    const {
+        name,
+        slug,
+        description,
+        brand,
+        category,
+        price,
+        discount,
+        stock,
+        sku,
+        images,
+        isActive,
+        isFeatured,
+    } = req.body;
+
+    // If category is being changed, verify it exists and is active
+    if (category !== undefined) {
+        if (!mongoose.Types.ObjectId.isValid(category)) {
+            throw new AppError("Invalid category ID", 400);
+        }
+
+        const existingCategory = await Category.findOne({
+            _id: category,
+            isActive: true,
+        });
+
+        if (!existingCategory) {
+            throw new AppError(
+                "Category not found or inactive",
+                404
+            );
+        }
+
+        product.category = category;
+    }
+
+    if (name !== undefined) product.name = name;
+    if (slug !== undefined) product.slug = slug;
+    if (description !== undefined) product.description = description;
+    if (brand !== undefined) product.brand = brand;
+    if (price !== undefined) product.price = price;
+    if (discount !== undefined) product.discount = discount;
+    if (stock !== undefined) product.stock = stock;
+    if (sku !== undefined) product.sku = sku;
+    if (images !== undefined) product.images = images;
+    if (isActive !== undefined) product.isActive = isActive;
+    if (isFeatured !== undefined) product.isFeatured = isFeatured;
+
+    const updatedProduct = await product.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Product updated successfully",
+        product: updatedProduct,
+    });
+});
+
 module.exports = {
     createProduct,
     getProducts,
+    getProductById,
+    updateProduct,
 };
