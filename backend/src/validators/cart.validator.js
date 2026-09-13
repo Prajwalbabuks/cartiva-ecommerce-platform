@@ -11,6 +11,14 @@ const addToCartSchema = z.object({
         .min(1, "Quantity must be at least 1"),
 });
 
+const updateCartItemSchema = z.object({
+    quantity: z
+        .number()
+        .int("Quantity must be an integer")
+        .min(1, "Quantity must be at least 1"),
+});
+
 module.exports = {
     addToCartSchema,
+    updateCartItemSchema,
 };
