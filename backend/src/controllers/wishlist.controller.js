@@ -69,5 +69,5 @@ module.exports = {
     addToWishlist,
     getWishlist,
     removeFromWishlist,
-    addToCartFromWishlist,
+    addToCartFromWishlist ,
 };

@@ -5,6 +5,7 @@ const categoryRouter = require("./routers/category.route");
 const productRouter = require("./routers/product.route");
 const cartRouter = require("./routers/cart.route"); 
 const wishlistRouter = require("./routers/wishlist.route");
+const addressRouter = require("./routers/address.route");
 const errorMiddleware = require("./middlewares/error.middleware");
 
 const app = express();
@@ -23,6 +24,7 @@ app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/wishlist", wishlistRouter);
+app.use("/api/v1/addresses", addressRouter);
 // Error handling middleware MUST be last
 app.use(errorMiddleware);
 
