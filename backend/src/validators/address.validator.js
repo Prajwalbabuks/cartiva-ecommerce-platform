@@ -61,6 +61,9 @@ const createAddressSchema = z.object({
         .optional(),
 });
 
+const updateAddressSchema = createAddressSchema.partial();
+
 module.exports = {
     createAddressSchema,
+    updateAddressSchema,
 };
