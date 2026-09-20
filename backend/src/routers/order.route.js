@@ -2,6 +2,8 @@ const express = require("express");
 
 const {
     addOrder,
+    getOrders,
+    getOrder,
 } = require("../controllers/order.controller");
 
 const authMiddleware = require("../middlewares/auth.middleware");
@@ -20,4 +22,15 @@ router.post(
     addOrder
 );
 
+router.get(
+    "/",
+    authMiddleware,
+    getOrders
+);
+
+router.get(
+    "/:orderId",
+    authMiddleware,
+    getOrder
+);
 module.exports = router;

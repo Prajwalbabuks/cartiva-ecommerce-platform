@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Order = require("../models/order");
 const Cart = require("../models/cart");
 const Address = require("../models/address");
@@ -118,6 +119,36 @@ const createOrder = async (userId, orderData) => {
     return order;
 };
 
+
+const getUserOrders = async (userId) => {
+    const orders = await Order.find({
+        user: userId,
+    }).sort({
+        createdAt: -1,
+    });
+
+    return orders;
+};
+
+const getOrderById = async (userId, orderId) => {
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        throw new AppError("Invalid order ID", 400);
+    }
+
+    const order = await Order.findOne({
+        _id: orderId,
+        user: userId,
+    });
+
+    if (!order) {
+        throw new AppError("Order not found", 404);
+    }
+
+    return order;
+};
+
 module.exports = {
     createOrder,
+    getUserOrders,
+    getOrderById,
 };
