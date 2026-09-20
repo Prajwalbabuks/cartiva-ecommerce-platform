@@ -1,7 +1,9 @@
 const asyncHandler = require("../utils/asyncHandler");
 const { createOrder,
       getUserOrders,
-      getOrderById
+      getOrderById,
+      cancelOrder,
+      updateOrderStatus
 } = require("../services/order.service");
 
 const addOrder = asyncHandler(async (req, res) => {
@@ -43,8 +45,43 @@ const getOrder = asyncHandler(async (req, res) => {
     });
 });
 
+const cancelOrderByUser = asyncHandler(async (req, res) => {
+    const { orderId } = req.params;
+
+    const order = await cancelOrder(
+        req.user.userId,
+        orderId
+    );
+
+    res.status(200).json({
+        success: true,
+        message: "Order cancelled successfully",
+        order,
+    });
+});
+
+const updateOrderStatusByAdmin = asyncHandler(
+    async (req, res) => {
+        const { orderId } = req.params;
+        const { status } = req.body;
+
+        const order = await updateOrderStatus(
+            orderId,
+            status
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Order status updated successfully",
+            order,
+        });
+    }
+);
+
 module.exports = {
     addOrder,
     getOrders,
     getOrder,
+    cancelOrderByUser,
+    updateOrderStatusByAdmin,
 };

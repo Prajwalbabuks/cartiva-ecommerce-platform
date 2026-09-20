@@ -12,6 +12,17 @@ const createOrderSchema = z.object({
         .optional(),
 });
 
+const updateOrderStatusSchema = z.object({
+    status: z.enum([
+        "confirmed",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+    ]),
+});
+
 module.exports = {
     createOrderSchema,
+    updateOrderStatusSchema,
 };

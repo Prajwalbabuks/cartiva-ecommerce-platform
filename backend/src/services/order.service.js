@@ -147,8 +147,72 @@ const getOrderById = async (userId, orderId) => {
     return order;
 };
 
+const cancelOrder = async (userId, orderId) => {
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        throw new AppError("Invalid order ID", 400);
+    }
+
+    const order = await Order.findOne({
+        _id: orderId,
+        user: userId,
+    });
+
+    if (!order) {
+        throw new AppError("Order not found", 404);
+    }
+
+    if (!["pending", "confirmed"].includes(order.status)) {
+        throw new AppError(
+            "This order cannot be cancelled",
+            400
+        );
+    }
+
+    order.status = "cancelled";
+
+    await order.save();
+
+    return order;
+};
+
+const updateOrderStatus = async (orderId, newStatus) => {
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        throw new AppError("Invalid order ID", 400);
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+        throw new AppError("Order not found", 404);
+    }
+
+    const allowedTransitions = {
+        pending: ["confirmed", "cancelled"],
+        confirmed: ["processing", "cancelled"],
+        processing: ["shipped"],
+        shipped: ["delivered"],
+        delivered: [],
+        cancelled: [],
+    };
+
+    if (!allowedTransitions[order.status].includes(newStatus)) {
+        throw new AppError(
+            `Cannot change order status from ${order.status} to ${newStatus}`,
+            400
+        );
+    }
+
+    order.status = newStatus;
+
+    await order.save();
+
+    return order;
+};
+
 module.exports = {
     createOrder,
     getUserOrders,
     getOrderById,
+    cancelOrder,
+    updateOrderStatus,
 };
