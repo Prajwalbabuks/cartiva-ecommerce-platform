@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 
 const authRouter = require("./routers/auth.route");
 const categoryRouter = require("./routers/category.route");
@@ -13,6 +14,9 @@ const errorMiddleware = require("./middlewares/error.middleware");
 
 const app = express();
 
+app.use(cors({
+    origin: "http://localhost:5173",
+}));
 app.use(express.json());
 
 app.get("/", (req, res) => {
