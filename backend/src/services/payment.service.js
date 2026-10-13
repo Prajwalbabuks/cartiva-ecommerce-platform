@@ -2,10 +2,12 @@ const crypto = require("crypto");
 const mongoose = require("mongoose");
 
 const Order = require("../models/order");
+const Cart = require("../models/cart");
+const Product = require("../models/product");
 const razorpay = require("../config/razorpay");
 const AppError = require("../utils/AppError");
 
-// Create a Razorpay order for an existing Cartiva order.
+// Create or reuse a Razorpay order.
 const createRazorpayOrder = async (userId, orderId) => {
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
         throw new AppError("Invalid order ID", 400);
@@ -26,12 +28,11 @@ const createRazorpayOrder = async (userId, orderId) => {
 
     if (order.status === "cancelled") {
         throw new AppError(
-            "Cannot make payment for a cancelled order",
+            "Cannot pay for a cancelled order",
             400
         );
     }
 
-    // Reuse the Razorpay order if one was already created.
     if (order.payment?.razorpayOrderId) {
         return {
             orderId: order._id,
@@ -44,7 +45,10 @@ const createRazorpayOrder = async (userId, orderId) => {
 
     const amountInPaise = Math.round(order.total * 100);
 
-    if (!Number.isSafeInteger(amountInPaise) || amountInPaise <= 0) {
+    if (
+        !Number.isSafeInteger(amountInPaise) ||
+        amountInPaise <= 0
+    ) {
         throw new AppError("Invalid order amount", 400);
     }
 
@@ -70,7 +74,7 @@ const createRazorpayOrder = async (userId, orderId) => {
     };
 };
 
-// Verify the signature and confirm the payment with Razorpay.
+// Verify payment and complete checkout atomically.
 const verifyRazorpayPayment = async (userId, paymentData) => {
     const {
         orderId,
@@ -112,13 +116,22 @@ const verifyRazorpayPayment = async (userId, paymentData) => {
         );
     }
 
-    // Razorpay signature = HMAC-SHA256(order_id|payment_id, key_secret).
+    // Verify the signature returned by Razorpay Checkout.
     const expectedSignature = crypto
         .createHmac("sha256", secret)
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
         .digest();
 
-    const receivedSignature = Buffer.from(
+    let receivedSignature;
+
+    if (
+        typeof razorpay_signature !== "string" ||
+        !/^[a-f0-9]{64}$/i.test(razorpay_signature)
+    ) {
+        throw new AppError("Invalid payment signature", 400);
+    }
+
+    receivedSignature = Buffer.from(
         razorpay_signature,
         "hex"
     );
@@ -133,7 +146,7 @@ const verifyRazorpayPayment = async (userId, paymentData) => {
         throw new AppError("Invalid payment signature", 400);
     }
 
-    // Independently check the payment against Razorpay's API.
+    // Independently confirm the payment with Razorpay.
     const payment = await razorpay.payments.fetch(
         razorpay_payment_id
     );
@@ -145,16 +158,16 @@ const verifyRazorpayPayment = async (userId, paymentData) => {
         );
     }
 
-    const expectedAmount = Math.round(order.total * 100);
-
     if (
-        payment.amount !== expectedAmount ||
+        payment.amount !== Math.round(order.total * 100) ||
         payment.currency !== "INR"
     ) {
-        throw new AppError("Payment amount or currency mismatch", 400);
+        throw new AppError(
+            "Payment amount or currency mismatch",
+            400
+        );
     }
 
-    // Don't mark an authorized or failed payment as paid.
     if (payment.status !== "captured") {
         throw new AppError(
             "Payment is not captured yet",
@@ -162,34 +175,141 @@ const verifyRazorpayPayment = async (userId, paymentData) => {
         );
     }
 
-    // Safe retry for the same successfully verified payment.
-    if (order.paymentStatus === "paid") {
-        if (order.payment.razorpayPaymentId === razorpay_payment_id) {
-            return {
-                orderId: order._id,
-                paymentStatus: order.paymentStatus,
-                status: order.status,
-                message: "Payment already verified",
-            };
-        }
+    // Aggregate quantities in case the same product appears
+    // more than once in the order.
+    const quantities = new Map();
 
-        throw new AppError("Order has already been paid", 400);
+    for (const item of order.items) {
+        const productId = item.product.toString();
+
+        quantities.set(
+            productId,
+            (quantities.get(productId) || 0) + item.quantity
+        );
     }
 
-    order.payment.razorpayPaymentId = razorpay_payment_id;
-    order.payment.razorpaySignature = razorpay_signature;
-    order.paymentStatus = "paid";
-    order.status = "confirmed";
+    const session = await mongoose.startSession();
+    let result;
 
-    await order.save();
+    try {
+        await session.withTransaction(async () => {
+            // Reload the order inside the transaction.
+            const currentOrder = await Order.findOne({
+                _id: orderId,
+                user: userId,
+            }).session(session);
 
-    return {
-        orderId: order._id,
-        paymentStatus: order.paymentStatus,
-        status: order.status,
-        message: "Payment verified successfully",
-    };
+            if (!currentOrder) {
+                throw new AppError("Order not found", 404);
+            }
+
+            if (
+                currentOrder.payment?.razorpayOrderId !==
+                razorpay_order_id
+            ) {
+                throw new AppError(
+                    "Razorpay order ID mismatch",
+                    400
+                );
+            }
+
+            // Another request may already have completed checkout.
+            if (
+                currentOrder.paymentStatus === "paid" &&
+                currentOrder.inventoryProcessed
+            ) {
+                result = {
+                    orderId: currentOrder._id,
+                    paymentStatus: currentOrder.paymentStatus,
+                    status: currentOrder.status,
+                    message: "Payment already verified",
+                };
+
+                return;
+            }
+
+            if (currentOrder.status === "cancelled") {
+                throw new AppError(
+                    "Cannot complete a cancelled order",
+                    400
+                );
+            }
+
+            // Deduct stock only when sufficient inventory remains.
+            for (const [productId, quantity] of quantities) {
+                const update = await Product.updateOne(
+                    {
+                        _id: productId,
+                        stock: { $gte: quantity },
+                    },
+                    {
+                        $inc: { stock: -quantity },
+                    },
+                    { session }
+                );
+
+                if (update.modifiedCount !== 1) {
+                    throw new AppError(
+                        `Insufficient stock for product ${productId}`,
+                        409
+                    );
+                }
+            }
+
+            // Remove only the purchased quantities from the cart.
+            // Items added after order creation are preserved.
+            const cart = await Cart.findOne({
+                user: userId,
+            }).session(session);
+
+            if (cart) {
+                for (const [productId, purchasedQuantity] of quantities) {
+                    const cartItem = cart.items.find(
+                        (item) =>
+                            item.product.toString() === productId
+                    );
+
+                    if (!cartItem) {
+                        continue;
+                    }
+
+                    if (cartItem.quantity <= purchasedQuantity) {
+                        cart.items = cart.items.filter(
+                            (item) =>
+                                item.product.toString() !== productId
+                        );
+                    } else {
+                        cartItem.quantity -= purchasedQuantity;
+                    }
+                }
+
+                await cart.save({ session });
+            }
+
+            currentOrder.payment.razorpayPaymentId =
+                razorpay_payment_id;
+            currentOrder.payment.razorpaySignature =
+                razorpay_signature;
+            currentOrder.paymentStatus = "paid";
+            currentOrder.status = "confirmed";
+            currentOrder.inventoryProcessed = true;
+
+            await currentOrder.save({ session });
+
+            result = {
+                orderId: currentOrder._id,
+                paymentStatus: currentOrder.paymentStatus,
+                status: currentOrder.status,
+                message: "Payment verified and checkout completed",
+            };
+        });
+    } finally {
+        await session.endSession();
+    }
+
+    return result;
 };
+
 module.exports = {
     createRazorpayOrder,
     verifyRazorpayPayment,

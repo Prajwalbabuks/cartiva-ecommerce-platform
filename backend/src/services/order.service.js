@@ -31,7 +31,7 @@ const createOrder = async (userId, orderData) => {
     const orderItems = [];
 
     for (const item of cart.items) {
-        const product = item.product;
+        const product = item.product;   
 
         if (!product) {
             throw new AppError(

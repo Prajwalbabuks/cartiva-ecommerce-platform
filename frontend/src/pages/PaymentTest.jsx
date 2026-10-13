@@ -1,60 +1,93 @@
 import { useState } from "react";
 import loadRazorpay from "../utils/loadRazorpay";
-import createRazorpayOrder from "../services/payment.service";
+import {
+    createRazorpayOrder,
+    verifyRazorpayPayment,
+} from "../services/payment.service";
 
 const PaymentTest = () => {
     const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
 
-    // Temporary values for testing
-    const orderId = "6aaf8f5565105bf77f9d10f2";
-
-    // Replace this with however your Cartiva currently stores the JWT
-    const token = localStorage.getItem("token");
-    // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTliZTgyNDRkYzBlMWJlN2E0ZDk5OTIiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3OTE3MDYyMzMsImV4cCI6MTc5MTc5MjYzM30.pxSH_6OgJctO3edeVNwkyAAgGejHuezJlqUsdluyv"
+    // Replace with a valid, pending Cartiva order ID.
+    const orderId = "6ace027f38bd5ecb27a64991";
 
     const handlePayment = async () => {
-        try {
-            setLoading(true);
+        setLoading(true);
+        setMessage("");
 
-            // 1. Load Razorpay Checkout
+        try {
+            const token = localStorage.getItem("token");
+            // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YWEwNTliMWQ1OGM5ZDk2ODQyOGQwOWIiLCJyb2xlIjoidXNlciIsImlhdCI6MTc5MTg4NDI3MCwiZXhwIjoxNzkxOTcwNjcwfQ.cz6zYwrX9XBhRG94cc6PyjE9svZAF9xMS2qyuWVmFVg"; // Replace with actual token retrieval
+
+            if (!token) {
+                throw new Error("Please log in before making a payment.");
+            }
+
             const isLoaded = await loadRazorpay();
 
             if (!isLoaded) {
-                throw new Error(
-                    "Razorpay Checkout failed to load"
-                );
+                throw new Error("Razorpay Checkout failed to load.");
             }
 
-            // 2. Create/get Razorpay Order through Cartiva backend
-            const data = await createRazorpayOrder(
-                orderId,
-                token
-            );
+            const data = await createRazorpayOrder(orderId, token);
+
+            // Supports either { payment: {...} } or a direct payment object.
+            const payment = data.payment ?? data;
 
             const {
                 razorpayOrderId,
                 amount,
                 currency,
                 keyId,
-            } = data.payment;
+            } = payment;
 
-            // 3. Configure Razorpay Checkout
+            if (!razorpayOrderId || !amount || !currency || !keyId) {
+                throw new Error(
+                    "Missing payment details. Check the create-order API response."
+                );
+            }
+
             const options = {
                 key: keyId,
                 amount,
                 currency,
-
                 name: "Cartiva",
-
                 description: `Payment for Cartiva Order ${orderId}`,
-
                 order_id: razorpayOrderId,
 
-                handler: function (response) {
-                    console.log(
-                        "Razorpay payment response:",
-                        response
-                    );
+                handler: async (response) => {
+                    setLoading(true);
+
+                    try {
+                        await verifyRazorpayPayment(
+                            {
+                                orderId,
+                                razorpay_order_id:
+                                    response.razorpay_order_id,
+                                razorpay_payment_id:
+                                    response.razorpay_payment_id,
+                                razorpay_signature:
+                                    response.razorpay_signature,
+                            },
+                            token
+                        );
+
+                        setMessage(
+                            "Payment verified successfully! Your order is confirmed."
+                        );
+                    } catch (error) {
+                        console.error("Verification error:", error);
+                        setMessage(
+                            "Payment may have succeeded, but verification failed. Check your order before retrying."
+                        );
+                    } finally {
+                        setLoading(false);
+                    }
+                },
+
+                modal: {
+                    ondismiss: () => setLoading(false),
                 },
 
                 theme: {
@@ -62,16 +95,20 @@ const PaymentTest = () => {
                 },
             };
 
-            // 4. Create Razorpay Checkout instance
             const razorpay = new window.Razorpay(options);
 
-            // 5. Open Checkout
-            razorpay.open();
+            razorpay.on("payment.failed", (response) => {
+                console.error("Razorpay payment failed:", response.error);
+                setMessage(
+                    response.error?.description || "Payment failed."
+                );
+                setLoading(false);
+            });
 
+            razorpay.open();
         } catch (error) {
             console.error("Payment error:", error);
-            alert(error.message);
-        } finally {
+            setMessage(error.message || "Unable to start payment.");
             setLoading(false);
         }
     };
@@ -79,19 +116,13 @@ const PaymentTest = () => {
     return (
         <div>
             <h1>Cartiva Payment Test</h1>
+            <p>Order ID: {orderId}</p>
 
-            <p>
-                Order ID: {orderId}
-            </p>
-
-            <button
-                onClick={handlePayment}
-                disabled={loading}
-            >
-                {loading
-                    ? "Opening Payment..."
-                    : "Pay ₹1,000"}
+            <button onClick={handlePayment} disabled={loading}>
+                {loading ? "Processing..." : "Pay Now"}
             </button>
+
+            {message && <p>{message}</p>}
         </div>
     );
 };

@@ -162,7 +162,10 @@ const orderSchema = new mongoose.Schema(
             ],
             default: "pending",
         },
-
+        inventoryProcessed: {
+            type: Boolean,
+            default: false,
+        },
         payment: {
             razorpayOrderId: {
                 type: String,
