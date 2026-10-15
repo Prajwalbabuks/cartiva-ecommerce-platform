@@ -20,14 +20,32 @@ const addOrder = asyncHandler(async (req, res) => {
 });
 
 const getOrders = asyncHandler(async (req, res) => {
-    const orders = await getUserOrders(
-        req.user.userId
+    const page = Number(req.query.page ?? 1);
+    const limit = Number(req.query.limit ?? 10);
+
+    if (
+        !Number.isSafeInteger(page) ||
+        !Number.isSafeInteger(limit) ||
+        page < 1 ||
+        limit < 1 ||
+        limit > 100
+    ) {
+        return res.status(400).json({
+            success: false,
+            message:
+                "Page must be a positive integer and limit must be between 1 and 100",
+        });
+    }
+
+    const result = await getUserOrders(
+        req.user.userId,
+        page,
+        limit
     );
 
     res.status(200).json({
         success: true,
-        count: orders.length,
-        orders,
+        ...result,
     });
 });
 

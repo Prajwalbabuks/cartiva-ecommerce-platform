@@ -120,14 +120,31 @@ const createOrder = async (userId, orderData) => {
 };
 
 
-const getUserOrders = async (userId) => {
-    const orders = await Order.find({
-        user: userId,
-    }).sort({
-        createdAt: -1,
-    });
+const getUserOrders = async (userId, page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
 
-    return orders;
+    const [orders, totalOrders] = await Promise.all([
+        Order.find({ user: userId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit),
+
+        Order.countDocuments({ user: userId }),
+    ]);
+
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    return {
+        orders,
+        pagination: {
+            currentPage: page,
+            limit,
+            totalOrders,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1,
+        },
+    };
 };
 
 const getOrderById = async (userId, orderId) => {
