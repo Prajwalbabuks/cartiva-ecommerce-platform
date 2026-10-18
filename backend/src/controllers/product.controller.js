@@ -63,6 +63,7 @@ const createProduct = asyncHandler(async (req, res) => {
     });
 });
 
+
 const getProducts = asyncHandler(async (req, res) => {
     const page = Math.max(Number(req.query.page) || 1, 1);
 
@@ -77,6 +78,7 @@ const getProducts = asyncHandler(async (req, res) => {
         isActive: true,
     };
 
+    // Search by product name
     if (req.query.search) {
         filter.name = {
             $regex: req.query.search,
@@ -84,54 +86,99 @@ const getProducts = asyncHandler(async (req, res) => {
         };
     }
 
+    // Filter by category
     if (req.query.category) {
-    if (!mongoose.Types.ObjectId.isValid(req.query.category)) {
-        throw new AppError("Invalid category ID", 400);
-    }
-
-    filter.category = req.query.category;
-    }
-
-    if (req.query.minPrice !== undefined) {
-    const minPrice = Number(req.query.minPrice);
-
-    if (Number.isNaN(minPrice) || minPrice < 0) {
-        throw new AppError("Invalid minimum price", 400);
-    }
-
-    filter.price = {
-        ...filter.price,
-        $gte: minPrice,
-    };
-   }
-
-    if (req.query.maxPrice !== undefined) {
-        const maxPrice = Number(req.query.maxPrice);
-
-        if (Number.isNaN(maxPrice) || maxPrice < 0) {
-            throw new AppError("Invalid maximum price", 400);
+        if (!mongoose.Types.ObjectId.isValid(req.query.category)) {
+            throw new AppError("Invalid category ID", 400);
         }
 
-        filter.price = {
-            ...filter.price,
-            $lte: maxPrice,
+        filter.category = req.query.category;
+    }
+
+    // Filter by discounted selling price
+    if (
+        req.query.minPrice !== undefined ||
+        req.query.maxPrice !== undefined
+    ) {
+        const priceConditions = [];
+
+        if (req.query.minPrice !== undefined) {
+            const minPrice = Number(req.query.minPrice);
+
+            if (!Number.isFinite(minPrice) || minPrice < 0) {
+                throw new AppError("Invalid minimum price", 400);
+            }
+
+            priceConditions.push({
+                $gte: [
+                    {
+                        $multiply: [
+                            "$price",
+                            {
+                                $subtract: [
+                                    1,
+                                    {
+                                        $divide: [
+                                            { $ifNull: ["$discount", 0] },
+                                            100,
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    minPrice,
+                ],
+            });
+        }
+
+        if (req.query.maxPrice !== undefined) {
+            const maxPrice = Number(req.query.maxPrice);
+
+            if (!Number.isFinite(maxPrice) || maxPrice < 0) {
+                throw new AppError("Invalid maximum price", 400);
+            }
+
+            priceConditions.push({
+                $lte: [
+                    {
+                        $multiply: [
+                            "$price",
+                            {
+                                $subtract: [
+                                    1,
+                                    {
+                                        $divide: [
+                                            { $ifNull: ["$discount", 0] },
+                                            100,
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    maxPrice,
+                ],
+            });
+        }
+
+        filter.$expr = {
+            $and: priceConditions,
         };
     }
 
+    // Sorting
     let sort = { createdAt: -1 };
 
     if (req.query.sort === "price_asc") {
         sort = { price: 1 };
-    }
-
-    if (req.query.sort === "price_desc") {
+    } else if (req.query.sort === "price_desc") {
         sort = { price: -1 };
-    }
-
-    if (req.query.sort === "oldest") {
+    } else if (req.query.sort === "oldest") {
         sort = { createdAt: 1 };
     }
 
+    // Fetch products and count matching documents
     const [products, totalProducts] = await Promise.all([
         Product.find(filter)
             .populate("category", "name slug")

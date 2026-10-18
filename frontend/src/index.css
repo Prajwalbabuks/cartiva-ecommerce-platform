@@ -508,3 +508,347 @@ input {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* Clickable product cards */
+.product-card-link {
+    display: block;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+}
+
+.product-card-link:focus-visible {
+    outline: 3px solid #21865d;
+    outline-offset: 4px;
+    border-radius: 14px;
+}
+
+/* Product detail page */
+.product-detail-page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 36px clamp(20px, 5vw, 64px) 80px;
+}
+
+.back-to-products {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 32px;
+    color: #526159;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.back-to-products:hover {
+    color: #176b49;
+}
+
+.product-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(32px, 6vw, 76px);
+}
+
+.detail-gallery {
+    min-width: 0;
+}
+
+.detail-main-image {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 380px;
+    aspect-ratio: 1 / 1;
+    border: 1px solid #e7ece7;
+    border-radius: 16px;
+    background: #f0f4f0;
+}
+
+.detail-main-image > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 380px;
+    object-fit: contain;
+}
+
+.detail-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 24px;
+    color: #91a095;
+    text-align: center;
+}
+
+.detail-discount-badge {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 12px;
+    border-radius: 7px;
+    background: #176b49;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.detail-thumbnails {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.detail-thumbnail {
+    width: 76px;
+    height: 76px;
+    overflow: hidden;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 9px;
+    background: #f0f4f0;
+    cursor: pointer;
+}
+
+.detail-thumbnail.active {
+    border-color: #176b49;
+}
+
+.detail-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.detail-information {
+    min-width: 0;
+    padding-top: 8px;
+}
+
+.detail-category {
+    margin: 0 0 12px;
+    color: #21865d;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.detail-information > h1 {
+    margin: 0;
+    font-family: "Manrope", sans-serif;
+    font-size: clamp(28px, 3.5vw, 42px);
+    line-height: 1.2;
+    letter-spacing: -1px;
+    overflow-wrap: anywhere;
+}
+
+.detail-brand {
+    margin: 16px 0;
+    color: #718077;
+    font-size: 14px;
+}
+
+.detail-brand strong {
+    color: #27372d;
+}
+
+.detail-price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.detail-current-price {
+    color: #176b49;
+    font-size: clamp(25px, 3vw, 34px);
+    font-weight: 800;
+}
+
+.detail-original-price {
+    color: #879188;
+    font-size: 17px;
+    text-decoration: line-through;
+}
+
+.detail-savings {
+    margin: 9px 0 0;
+    color: #21865d;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.detail-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 24px;
+    padding: 10px 13px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.detail-stock.in-stock {
+    background: #eaf6ed;
+    color: #176b49;
+}
+
+.detail-stock.out-of-stock {
+    background: #fff0ef;
+    color: #b42318;
+}
+
+.stock-dot {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.detail-description {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e7ece7;
+}
+
+.detail-description h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+}
+
+.detail-description p {
+    margin: 0;
+    color: #647168;
+    font-size: 14px;
+    line-height: 1.9;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+
+.detail-sku {
+    margin-top: 22px;
+    color: #879188;
+    font-size: 12px;
+}
+
+.detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.detail-primary-button,
+.detail-secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 48px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.detail-primary-button {
+    background: #176b49;
+    color: white;
+    cursor: pointer;
+}
+
+.detail-primary-button:hover:not(:disabled) {
+    background: #105438;
+}
+
+.detail-primary-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.detail-secondary-button {
+    border: 1px solid #dfe7e0;
+    background: white;
+    color: #365344;
+}
+
+.detail-note {
+    margin-top: 18px;
+    color: #879188;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.product-detail-message {
+    display: flex;
+    min-height: 55vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 32px 20px;
+    color: #647168;
+    text-align: center;
+}
+
+.product-detail-message h1 {
+    margin: 8px 0 0;
+    color: #17211d;
+}
+
+.product-detail-message p {
+    max-width: 500px;
+    line-height: 1.7;
+}
+
+.loading-icon {
+    animation: cartiva-spin 1s linear infinite;
+}
+
+@keyframes cartiva-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 760px) {
+    .product-detail {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+    }
+
+    .detail-main-image {
+        min-height: 280px;
+    }
+
+    .detail-main-image > img {
+        min-height: 280px;
+    }
+
+    .detail-information {
+        padding-top: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loading-icon {
+        animation: none;
+    }
+}
