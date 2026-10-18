@@ -70,13 +70,23 @@ const login = asyncHandler(async (req, res) => {
     });
 });
 
-const getMe = async (req, res) => {
+const getMe = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user.userId);
+
+    if (!user || !user.isActive) {
+        throw new AppError("User not found or inactive", 401);
+    }
+
     res.status(200).json({
         success: true,
-        message: "You are authenticated",
-        user: req.user,
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        },
     });
-};
+});
 
 module.exports = {
     register,

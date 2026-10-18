@@ -32,7 +32,6 @@ router.post(
 router.get(
     "/me",
     authMiddleware,
-    authorizationMiddleware("admin"),
     getMe
 );
 
