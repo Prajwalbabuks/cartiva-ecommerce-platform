@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import loadRazorpay from "../utils/loadRazorpay";
 import {
@@ -8,31 +9,36 @@ import {
 const PaymentTest = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
+    const [paymentStatus, setPaymentStatus] = useState("idle");
 
     // Replace with a valid, pending Cartiva order ID.
-    const orderId = "6ace027f38bd5ecb27a64991";
+    const orderId = "6aaf8fec65105bf77f9d10f3";
 
     const handlePayment = async () => {
+        if (loading) return;
+
         setLoading(true);
         setMessage("");
+        setPaymentStatus("initializing");
 
         try {
             const token = localStorage.getItem("token");
-            // const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YWEwNTliMWQ1OGM5ZDk2ODQyOGQwOWIiLCJyb2xlIjoidXNlciIsImlhdCI6MTc5MTg4NDI3MCwiZXhwIjoxNzkxOTcwNjcwfQ.cz6zYwrX9XBhRG94cc6PyjE9svZAF9xMS2qyuWVmFVg"; // Replace with actual token retrieval
 
             if (!token) {
-                throw new Error("Please log in before making a payment.");
+                throw new Error(
+                    "Please log in before making a payment."
+                );
             }
 
             const isLoaded = await loadRazorpay();
 
             if (!isLoaded) {
-                throw new Error("Razorpay Checkout failed to load.");
+                throw new Error(
+                    "Razorpay Checkout failed to load."
+                );
             }
 
             const data = await createRazorpayOrder(orderId, token);
-
-            // Supports either { payment: {...} } or a direct payment object.
             const payment = data.payment ?? data;
 
             const {
@@ -42,9 +48,15 @@ const PaymentTest = () => {
                 keyId,
             } = payment;
 
-            if (!razorpayOrderId || !amount || !currency || !keyId) {
+            if (
+                !razorpayOrderId ||
+                !Number.isSafeInteger(amount) ||
+                amount <= 0 ||
+                !currency ||
+                !keyId
+            ) {
                 throw new Error(
-                    "Missing payment details. Check the create-order API response."
+                    "Invalid payment details. Check the create-order API response."
                 );
             }
 
@@ -57,7 +69,8 @@ const PaymentTest = () => {
                 order_id: razorpayOrderId,
 
                 handler: async (response) => {
-                    setLoading(true);
+                    setPaymentStatus("verifying");
+                    setMessage("Payment received. Verifying with Cartiva...");
 
                     try {
                         await verifyRazorpayPayment(
@@ -73,13 +86,16 @@ const PaymentTest = () => {
                             token
                         );
 
+                        setPaymentStatus("success");
                         setMessage(
                             "Payment verified successfully! Your order is confirmed."
                         );
                     } catch (error) {
                         console.error("Verification error:", error);
+
+                        setPaymentStatus("verification_unknown");
                         setMessage(
-                            "Payment may have succeeded, but verification failed. Check your order before retrying."
+                            "We couldn't confirm your payment yet. Check your order status before attempting another payment."
                         );
                     } finally {
                         setLoading(false);
@@ -87,7 +103,21 @@ const PaymentTest = () => {
                 },
 
                 modal: {
-                    ondismiss: () => setLoading(false),
+                    ondismiss: () => {
+                        setLoading(false);
+
+                        setPaymentStatus((current) =>
+                        current === "initializing" ||
+                        current === "checkout_open"
+                            ? "dismissed"
+                            : current   
+                        );
+
+                        setMessage((current) =>
+                            current ||
+                            "Checkout closed. You can try again if you haven't completed payment."
+                        );
+                    },
                 },
 
                 theme: {
@@ -98,17 +128,27 @@ const PaymentTest = () => {
             const razorpay = new window.Razorpay(options);
 
             razorpay.on("payment.failed", (response) => {
-                console.error("Razorpay payment failed:", response.error);
+                console.error(
+                    "Razorpay payment failed:",
+                    response.error
+                );
+
+                setPaymentStatus("failed");
                 setMessage(
-                    response.error?.description || "Payment failed."
+                    response.error?.description ||
+                    "Payment attempt failed. You can try again."
                 );
                 setLoading(false);
             });
 
             razorpay.open();
+            setPaymentStatus("checkout_open");
         } catch (error) {
             console.error("Payment error:", error);
-            setMessage(error.message || "Unable to start payment.");
+            setPaymentStatus("error");
+            setMessage(
+                error.message || "Unable to start payment."
+            );
             setLoading(false);
         }
     };
@@ -116,13 +156,22 @@ const PaymentTest = () => {
     return (
         <div>
             <h1>Cartiva Payment Test</h1>
-            <p>Order ID: {orderId}</p>
 
-            <button onClick={handlePayment} disabled={loading}>
-                {loading ? "Processing..." : "Pay Now"}
+            <p>Order ID: {orderId}</p>
+            <p>Payment status: {paymentStatus}</p>
+
+            <button
+                onClick={handlePayment}
+                disabled={loading || paymentStatus === "success"}
+            >
+                {loading ? "Processing..." : "Pay Now / Retry"}
             </button>
 
-            {message && <p>{message}</p>}
+            {message && (
+                <p role="status" aria-live="polite">
+                    {message}
+                </p>
+            )}
         </div>
     );
 };
