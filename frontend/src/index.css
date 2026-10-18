@@ -1,0 +1,148 @@
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
+
+:root {
+    font-family: "DM Sans", sans-serif;
+    color: #17211d;
+    background: #f8faf8;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-optical-sizing: auto;
+    font-weight: 400;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px clamp(20px, 7vw, 100px);
+    background: #fff;
+    border-bottom: 1px solid #e9eee9;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #176b49;
+    font-family: "Manrope", sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    color: #526159;
+    font-size: 14px;
+}
+
+.nav-links a:hover {
+    color: #176b49;
+}
+
+.hero {
+    max-width: 1000px;
+    min-height: 68vh;
+    margin: 0 auto;
+    padding: 120px 24px 90px;
+    text-align: center;
+}
+
+.eyebrow {
+    color: #176b49;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.hero h1 {
+    margin: 22px 0;
+    font-family: "Manrope", sans-serif;
+    font-size: clamp(42px, 7vw, 76px);
+    font-weight: 800;
+    letter-spacing: -3px;
+    line-height: 1.12;
+}
+
+.hero h1 span {
+    color: #21865d;
+}
+
+.hero-description {
+    max-width: 540px;
+    margin: 0 auto;
+    color: #647168;
+    font-size: 17px;
+    line-height: 1.8;
+}
+
+.shop-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 32px;
+    padding: 15px 24px;
+    border-radius: 10px;
+    background: #176b49;
+    color: white;
+    font-weight: 600;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.shop-button:hover {
+    background: #105438;
+    transform: translateY(-2px);
+}
+
+.footer {
+    padding: 24px;
+    border-top: 1px solid #e9eee9;
+    color: #778078;
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .navbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .nav-links {
+        gap: 18px;
+    }
+
+    .hero {
+        padding-top: 85px;
+    }
+
+    .hero h1 {
+        letter-spacing: -1.5px;
+    }
+}
