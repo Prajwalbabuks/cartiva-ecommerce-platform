@@ -1,16 +1,17 @@
-
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
+
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
+  const { totalItems } = useCart();
   const navigate = useNavigate();
 
   const getLinkClass = ({ isActive }) =>
     `whitespace-nowrap text-sm font-semibold transition-colors ${
-      isActive
-        ? "text-brand"
-        : "text-gray-600 hover:text-brand"
+      isActive ? "text-brand" : "text-gray-600 hover:text-brand"
     }`;
 
   const handleLogout = () => {
@@ -42,6 +43,27 @@ function Navbar() {
 
           {isAuthenticated ? (
             <>
+              <NavLink
+                to="/cart"
+                aria-label={`Shopping cart, ${totalItems} items`}
+                className={({ isActive }) =>
+                  `relative inline-flex items-center gap-2 text-sm font-semibold transition-colors ${
+                    isActive
+                      ? "text-brand"
+                      : "text-gray-600 hover:text-brand"
+                  }`
+                }
+              >
+                <ShoppingCart size={21} />
+                <span>Cart</span>
+
+                {totalItems > 0 && (
+                  <span className="absolute -right-3 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white">
+                    {totalItems > 99 ? "99+" : totalItems}
+                  </span>
+                )}
+              </NavLink>
+
               <span className="max-w-36 truncate text-sm font-medium text-gray-500">
                 Hi, {user?.name || "User"}
               </span>

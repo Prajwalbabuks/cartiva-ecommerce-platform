@@ -1,8 +1,13 @@
-
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import {
   ArrowLeft,
+  CheckCircle,
   Package,
   RefreshCw,
   ShoppingBag,
@@ -10,6 +15,8 @@ import {
 } from "lucide-react";
 
 import { getProductById } from "../services/product.service";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 const buttonPrimary =
   "inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50";
@@ -19,11 +26,19 @@ const buttonSecondary =
 
 function ProductDetails() {
   const { productId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const { isAuthenticated } = useAuth();
+  const { addItem } = useCart();
 
   const [product, setProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [addingToCart, setAddingToCart] = useState(false);
   const [error, setError] = useState("");
+  const [cartMessage, setCartMessage] = useState("");
+  const [cartError, setCartError] = useState("");
 
   const fetchProduct = useCallback(async () => {
     setLoading(true);
@@ -54,6 +69,41 @@ function ProductDetails() {
     fetchProduct();
   }, [fetchProduct]);
 
+  const handleAddToCart = async () => {
+    setCartMessage("");
+    setCartError("");
+
+    if (!isAuthenticated) {
+      navigate("/login", {
+        state: {
+          from: location,
+          message: "Please log in to add products to your cart.",
+        },
+      });
+      return;
+    }
+
+    if (!product || Number(product.stock) <= 0) {
+      setCartError("This product is currently out of stock.");
+      return;
+    }
+
+    setAddingToCart(true);
+
+    try {
+      await addItem(product._id, 1);
+      setCartMessage("Product added to your cart successfully.");
+    } catch (err) {
+      setCartError(
+        err.response?.data?.message ||
+          err.message ||
+          "Unable to add this product to your cart."
+      );
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
   if (loading) {
     return (
       <main
@@ -70,9 +120,11 @@ function ProductDetails() {
     return (
       <main className="mx-auto flex min-h-96 max-w-xl flex-col items-center justify-center px-5 py-12 text-center">
         <Package size={44} className="text-gray-400" />
+
         <h1 className="mt-4 text-2xl font-bold text-gray-900">
           Product unavailable
         </h1>
+
         <p className="mt-2 text-gray-500">
           {error || "This product could not be found."}
         </p>
@@ -143,7 +195,9 @@ function ProductDetails() {
             ) : (
               <div className="flex flex-col items-center gap-3 text-gray-400">
                 <ShoppingBag size={54} />
-                <span className="text-sm">No product image available</span>
+                <span className="text-sm">
+                  No product image available
+                </span>
               </div>
             )}
 
@@ -232,6 +286,7 @@ function ProductDetails() {
                 inStock ? "bg-emerald-500" : "bg-red-500"
               }`}
             />
+
             {inStock
               ? `In stock — ${product.stock} available`
               : "Currently out of stock"}
@@ -241,6 +296,7 @@ function ProductDetails() {
             <h2 className="text-lg font-bold text-gray-900">
               Product description
             </h2>
+
             <p className="mt-3 whitespace-pre-line text-sm leading-7 text-gray-600">
               {product.description ||
                 "No description is available for this product."}
@@ -249,26 +305,54 @@ function ProductDetails() {
 
           {product.sku && (
             <p className="mt-5 text-sm text-gray-500">
-              SKU: <span className="font-medium text-gray-700">{product.sku}</span>
+              SKU:{" "}
+              <span className="font-medium text-gray-700">
+                {product.sku}
+              </span>
+            </p>
+          )}
+
+          {cartMessage && (
+            <div
+              role="status"
+              className="mt-5 flex items-start gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700"
+            >
+              <CheckCircle size={18} className="mt-0.5 shrink-0" />
+              <div className="flex-1">{cartMessage}</div>
+              <Link
+                to="/cart"
+                className="shrink-0 font-bold underline"
+              >
+                View cart
+              </Link>
+            </div>
+          )}
+
+          {cartError && (
+            <p
+              role="alert"
+              className="mt-5 rounded-lg bg-red-50 p-3 text-sm text-red-700"
+            >
+              {cartError}
             </p>
           )}
 
           <button
             type="button"
             className={`${buttonPrimary} mt-7 w-full`}
-            disabled={!inStock}
-            onClick={() => {
-              window.alert(
-                "Cart functionality is coming in the next milestone."
-              );
-            }}
+            disabled={!inStock || addingToCart}
+            onClick={handleAddToCart}
           >
             <ShoppingBag size={18} />
-            {inStock ? "Add to cart" : "Out of stock"}
+            {!inStock
+              ? "Out of stock"
+              : addingToCart
+                ? "Adding to cart..."
+                : "Add to cart"}
           </button>
 
           <p className="mt-4 text-center text-xs leading-5 text-gray-500">
-            Secure checkout with Cartiva's payment integration.
+            Your cart is saved to your Cartiva account.
           </p>
         </div>
       </section>
