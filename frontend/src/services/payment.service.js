@@ -1,54 +1,15 @@
-const API_URL = "http://localhost:5000/api/v1";
 
-const createRazorpayOrder = async (orderId, token) => {
-    const response = await fetch(
-        `${API_URL}/payments/create-order`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ orderId }),
-        }
-    );
+import api from "./api";
 
-    const data = await response.json();
+export const createRazorpayOrder = async (orderId) => {
+  const response = await api.post("/payments/create-order", {
+    orderId,
+  });
 
-    if (!response.ok) {
-        throw new Error(
-            data.message || "Failed to create payment order"
-        );
-    }
-
-    return data;
+  return response.data;
 };
 
-const verifyRazorpayPayment = async (paymentData, token) => {
-    const response = await fetch(
-        `${API_URL}/payments/verify`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(paymentData),
-        }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(
-            data.message || "Payment verification failed"
-        );
-    }
-
-    return data;
-};
-
-export {
-    createRazorpayOrder,
-    verifyRazorpayPayment,
+export const verifyRazorpayPayment = async (paymentData) => {
+  const response = await api.post("/payments/verify", paymentData);
+  return response.data;
 };
