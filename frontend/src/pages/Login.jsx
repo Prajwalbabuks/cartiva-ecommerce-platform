@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 function Login() {
@@ -11,6 +11,7 @@ function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const successMessage = location.state?.message;
 
@@ -27,6 +28,7 @@ function Login() {
       await login(form);
 
       const destination = location.state?.from;
+
       navigate(
         destination
           ? `${destination.pathname}${destination.search || ""}${destination.hash || ""}`
@@ -61,27 +63,38 @@ function Login() {
         <h1 className="text-center text-2xl font-bold text-gray-900">
           Welcome back
         </h1>
+
         <p className="mt-2 text-center text-sm text-gray-500">
           Log in to your Cartiva account.
         </p>
 
         {successMessage && (
-          <p role="status" className="mt-5 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
+          <p
+            role="status"
+            className="mt-5 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700"
+          >
             {successMessage}
           </p>
         )}
 
         {error && (
-          <p role="alert" className="mt-5 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          <p
+            role="alert"
+            className="mt-5 rounded-lg bg-red-50 p-3 text-sm text-red-700"
+          >
             {error}
           </p>
         )}
 
         <div className="mt-6 space-y-5">
           <div>
-            <label htmlFor="login-email" className="mb-2 block text-sm font-semibold text-gray-700">
+            <label
+              htmlFor="login-email"
+              className="mb-2 block text-sm font-semibold text-gray-700"
+            >
               Email address
             </label>
+
             <input
               id="login-email"
               name="email"
@@ -96,20 +109,40 @@ function Login() {
           </div>
 
           <div>
-            <label htmlFor="login-password" className="mb-2 block text-sm font-semibold text-gray-700">
+            <label
+              htmlFor="login-password"
+              className="mb-2 block text-sm font-semibold text-gray-700"
+            >
               Password
             </label>
-            <input
-              id="login-password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="Enter your password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-brand focus:ring-2 focus:ring-indigo-100"
-            />
+
+            <div className="relative">
+              <input
+                id="login-password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 outline-none transition focus:border-brand focus:ring-2 focus:ring-indigo-100"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((previous) => !previous)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+                className="absolute inset-y-0 right-0 flex items-center justify-center px-4 text-gray-500 transition hover:text-brand focus:outline-none focus:text-brand"
+              >
+                {showPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -123,7 +156,10 @@ function Login() {
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Don't have an account?{" "}
-          <Link to="/register" className="font-semibold text-brand hover:underline">
+          <Link
+            to="/register"
+            className="font-semibold text-brand hover:underline"
+          >
             Create one
           </Link>
         </p>
