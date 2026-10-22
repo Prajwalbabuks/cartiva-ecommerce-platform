@@ -20,6 +20,7 @@ import Checkout from "./pages/Checkout";
 import PaymentTest from "./pages/PaymentTest";
 import OrderHistory from "./pages/OrderHistory";
 import OrderConfirmation from "./pages/OrderConfirmation";
+import Wishlist from "./pages/Wishlist";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import GuestRoute from "./components/GuestRoute";
@@ -80,6 +81,7 @@ export default function App() {
           {/* Protected pages: ProtectedRoute renders their Outlet */}
           <Route element={<ProtectedRoute />}>
             <Route path="/cart" element={<Cart />} />
+            <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/addresses" element={<Addresses />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/orders" element={<OrderHistory />} />

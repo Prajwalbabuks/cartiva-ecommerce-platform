@@ -18,6 +18,7 @@ import {
   UserPlus,
   House,
   UserRound,
+  Heart,
 } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
@@ -89,6 +90,11 @@ export default function Navbar() {
       label: "Addresses",
       to: "/addresses",
       icon: MapPin,
+    },
+    {
+      label: "Wishlist",
+      to: "/wishlist",
+      icon: Heart,
     },
   ];
 

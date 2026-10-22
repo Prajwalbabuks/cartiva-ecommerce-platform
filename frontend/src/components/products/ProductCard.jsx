@@ -1,7 +1,19 @@
 
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Heart, LoaderCircle } from "lucide-react";
+
+import { useAuth } from "../../context/AuthContext";
+import { addToWishlist } from "../../services/wishlist.service";
 
 function ProductCard({ product }) {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  const [savingWishlist, setSavingWishlist] = useState(false);
+  const [wishlistMessage, setWishlistMessage] = useState("");
+  const [wishlistError, setWishlistError] = useState("");
+
   const firstImage = product.images?.[0];
 
   const imageUrl =
@@ -19,6 +31,40 @@ function ProductCard({ product }) {
 
   const discountedPrice = price * (1 - discount / 100);
   const outOfStock = Number(product.stock) <= 0;
+
+  const handleAddToWishlist = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!isAuthenticated) {
+      navigate("/login", {
+        state: { from: window.location.pathname },
+      });
+      return;
+    }
+
+    if (savingWishlist) return;
+
+    setSavingWishlist(true);
+    setWishlistMessage("");
+    setWishlistError("");
+
+    try {
+      await addToWishlist(product._id);
+      setWishlistMessage("Added to wishlist!");
+    } catch (error) {
+      if (error.response?.status === 409) {
+        setWishlistMessage("Already in your wishlist.");
+      } else {
+        setWishlistError(
+          error.response?.data?.message ||
+            "Couldn't add this product. Please try again."
+        );
+      }
+    } finally {
+      setSavingWishlist(false);
+    }
+  };
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
@@ -49,6 +95,22 @@ function ProductCard({ product }) {
           </div>
         )}
       </Link>
+
+      {/* Wishlist heart button */}
+      <button
+        type="button"
+        onClick={handleAddToWishlist}
+        disabled={savingWishlist}
+        aria-label={`Add ${product.name} to wishlist`}
+        title="Add to wishlist"
+        className="absolute right-3 top-3 z-20 flex size-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:border-pink-200 hover:bg-pink-50 hover:text-pink-600 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {savingWishlist ? (
+          <LoaderCircle size={19} className="animate-spin" />
+        ) : (
+          <Heart size={19} />
+        )}
+      </button>
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         {product.category?.name && (
@@ -93,6 +155,25 @@ function ProductCard({ product }) {
         >
           {outOfStock ? "Out of stock" : "In stock"}
         </p>
+
+        {/* Wishlist feedback */}
+        {wishlistMessage && (
+          <p className="mt-3 text-sm font-medium text-emerald-600">
+            {wishlistMessage}{" "}
+            <Link
+              to="/wishlist"
+              className="underline underline-offset-2 hover:text-emerald-800"
+            >
+              View wishlist
+            </Link>
+          </p>
+        )}
+
+        {wishlistError && (
+          <p role="alert" className="mt-3 text-sm text-red-600">
+            {wishlistError}
+          </p>
+        )}
 
         <Link
           to={`/products/${product._id}`}
