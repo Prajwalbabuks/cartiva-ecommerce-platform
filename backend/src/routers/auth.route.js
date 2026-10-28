@@ -7,7 +7,7 @@ const {
 } = require("../controllers/auth.controller");
 
 const validate = require("../middlewares/validate");
-const authMiddleware = require("../middlewares/auth.middleware");
+const {authMiddleware} = require("../middlewares/auth.middleware");
 const authorizationMiddleware = require("../middlewares/authorize.middleware");
 
 const {

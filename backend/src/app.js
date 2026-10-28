@@ -10,7 +10,9 @@ const addressRouter = require("./routers/address.route");
 const couponRouter = require("./routers/coupon.route");
 const orderRouter = require("./routers/order.route");
 const paymentRouter = require("./routers/payment.route");
+const reviewRouter = require("./routers/review.route");
 const errorMiddleware = require("./middlewares/error.middleware");
+
 
 const app = express();
 
@@ -35,6 +37,7 @@ app.use("/api/v1/addresses", addressRouter);
 app.use("/api/v1/coupons", couponRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/payments", paymentRouter);
+app.use("/api/v1/reviews",  reviewRouter);
 // Error handling middleware MUST be last
 app.use(errorMiddleware);
 

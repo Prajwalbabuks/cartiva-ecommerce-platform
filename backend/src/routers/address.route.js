@@ -8,7 +8,7 @@ const {
     makeDefaultAddress,
 } = require("../controllers/address.controller");
 
-const authMiddleware = require("../middlewares/auth.middleware");
+const { authMiddleware } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validate");
 
 const {

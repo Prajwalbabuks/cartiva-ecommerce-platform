@@ -5,7 +5,7 @@ const {
     verifyPayment,
 } = require("../controllers/payment.controller");
 
-const authMiddleware = require("../middlewares/auth.middleware");
+const { authMiddleware } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validate");
 
 const {

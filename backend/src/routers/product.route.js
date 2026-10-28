@@ -8,7 +8,7 @@ const {
 } = require("../controllers/product.controller");
 
 const validate = require("../middlewares/validate");
-const authMiddleware = require("../middlewares/auth.middleware");
+const { authMiddleware } = require("../middlewares/auth.middleware");
 const authorize = require("../middlewares/authorize.middleware");
 
 const {

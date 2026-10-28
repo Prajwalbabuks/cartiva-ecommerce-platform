@@ -8,7 +8,7 @@ const {
 } = require("../controllers/cart.controller");
 
 const validate = require("../middlewares/validate");
-const authMiddleware = require("../middlewares/auth.middleware");
+const { authMiddleware } = require("../middlewares/auth.middleware");
 
 const {
     addToCartSchema,

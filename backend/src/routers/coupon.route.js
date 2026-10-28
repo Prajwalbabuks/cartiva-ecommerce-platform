@@ -9,7 +9,7 @@ const {
     checkCoupon,
 } = require("../controllers/coupon.controller");
 
-const authMiddleware = require("../middlewares/auth.middleware");
+const { authMiddleware } = require("../middlewares/auth.middleware");
 const authorize = require("../middlewares/authorize.middleware");
 const validate = require("../middlewares/validate");
 
