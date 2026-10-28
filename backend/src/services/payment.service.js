@@ -5,8 +5,13 @@ const mongoose = require("mongoose");
 const Order = require("../models/order");
 const Cart = require("../models/cart");
 const Product = require("../models/product");
+
 const razorpay = require("../config/razorpay");
 const AppError = require("../utils/AppError");
+
+const {
+    redeemCouponForOrder,
+} = require("./coupon.service");
 
 // Create or reuse a Razorpay order.
 const createRazorpayOrder = async (userId, orderId) => {
@@ -24,7 +29,10 @@ const createRazorpayOrder = async (userId, orderId) => {
     }
 
     if (order.paymentStatus === "paid") {
-        throw new AppError("This order has already been paid", 400);
+        throw new AppError(
+            "This order has already been paid",
+            400
+        );
     }
 
     if (order.status === "cancelled") {
@@ -34,7 +42,6 @@ const createRazorpayOrder = async (userId, orderId) => {
         );
     }
 
-    // Validate the amount before reusing or creating a payment order.
     const amountInPaise = Math.round(order.total * 100);
 
     if (
@@ -44,7 +51,7 @@ const createRazorpayOrder = async (userId, orderId) => {
         throw new AppError("Invalid order amount", 400);
     }
 
-    // Reuse the existing Razorpay order when retrying payment.
+    // Reuse the Razorpay order when retrying payment.
     if (order.payment?.razorpayOrderId) {
         return {
             orderId: order._id,
@@ -65,7 +72,6 @@ const createRazorpayOrder = async (userId, orderId) => {
         },
     });
 
-    // Save the Razorpay order ID against the Cartiva order.
     order.payment.razorpayOrderId = razorpayOrder.id;
     await order.save();
 
@@ -76,6 +82,80 @@ const createRazorpayOrder = async (userId, orderId) => {
         currency: razorpayOrder.currency,
         keyId: process.env.RAZORPAY_KEY_ID,
     };
+};
+
+// Aggregate purchased quantities by product ID.
+const getOrderQuantities = (order) => {
+    const quantities = new Map();
+
+    for (const item of order.items) {
+        const productId = item.product.toString();
+
+        quantities.set(
+            productId,
+            (quantities.get(productId) || 0) + item.quantity
+        );
+    }
+
+    return quantities;
+};
+
+// Deduct inventory and remove purchased quantities from the cart.
+// Must be called inside an active MongoDB transaction.
+const processInventoryAndCart = async (
+    order,
+    session,
+    quantities
+) => {
+    for (const [productId, quantity] of quantities) {
+        const update = await Product.updateOne(
+            {
+                _id: productId,
+                stock: { $gte: quantity },
+            },
+            {
+                $inc: { stock: -quantity },
+            },
+            { session }
+        );
+
+        if (update.modifiedCount !== 1) {
+            throw new AppError(
+                `Insufficient stock for product ${productId}. Payment reconciliation or refund may be required.`,
+                409
+            );
+        }
+    }
+
+    // Remove only the purchased quantities, preserving newer
+    // cart items and any quantities added after order creation.
+    const cart = await Cart.findOne({
+        user: order.user,
+    }).session(session);
+
+    if (!cart) {
+        return;
+    }
+
+    for (const [productId, purchasedQuantity] of quantities) {
+        const cartItem = cart.items.find(
+            (item) => item.product.toString() === productId
+        );
+
+        if (!cartItem) {
+            continue;
+        }
+
+        if (cartItem.quantity <= purchasedQuantity) {
+            cart.items = cart.items.filter(
+                (item) => item.product.toString() !== productId
+            );
+        } else {
+            cartItem.quantity -= purchasedQuantity;
+        }
+    }
+
+    await cart.save({ session });
 };
 
 // Verify payment and complete checkout atomically.
@@ -154,7 +234,7 @@ const verifyRazorpayPayment = async (userId, paymentData) => {
         throw new AppError("Invalid payment signature", 400);
     }
 
-    // Independently confirm the payment with Razorpay.
+    // Independently confirm payment with Razorpay.
     const payment = await razorpay.payments.fetch(
         razorpay_payment_id
     );
@@ -185,24 +265,13 @@ const verifyRazorpayPayment = async (userId, paymentData) => {
         );
     }
 
-    // Aggregate quantities in case a product appears more than once.
-    const quantities = new Map();
-
-    for (const item of order.items) {
-        const productId = item.product.toString();
-
-        quantities.set(
-            productId,
-            (quantities.get(productId) || 0) + item.quantity
-        );
-    }
-
+    const quantities = getOrderQuantities(order);
     const session = await mongoose.startSession();
+
     let result;
 
     try {
         await session.withTransaction(async () => {
-            // Reload the order inside the transaction.
             const currentOrder = await Order.findOne({
                 _id: orderId,
                 user: userId,
@@ -222,7 +291,7 @@ const verifyRazorpayPayment = async (userId, paymentData) => {
                 );
             }
 
-            // Another request may already have completed checkout.
+            // Make repeat verification idempotent.
             if (
                 currentOrder.paymentStatus === "paid" &&
                 currentOrder.inventoryProcessed
@@ -251,58 +320,19 @@ const verifyRazorpayPayment = async (userId, paymentData) => {
                 );
             }
 
-            // Deduct stock only if sufficient inventory remains.
-            for (const [productId, quantity] of quantities) {
-                const update = await Product.updateOne(
-                    {
-                        _id: productId,
-                        stock: { $gte: quantity },
-                    },
-                    {
-                        $inc: { stock: -quantity },
-                    },
-                    { session }
-                );
+            // Deduct stock and update the cart.
+            await processInventoryAndCart(
+                currentOrder,
+                session,
+                quantities
+            );
 
-                if (update.modifiedCount !== 1) {
-                    throw new AppError(
-                        `Insufficient stock for product ${productId}`,
-                        409
-                    );
-                }
-            }
-
-            // Remove only purchased quantities; preserve newer cart items.
-            const cart = await Cart.findOne({
-                user: userId,
-            }).session(session);
-
-            if (cart) {
-                for (const [
-                    productId,
-                    purchasedQuantity,
-                ] of quantities) {
-                    const cartItem = cart.items.find(
-                        (item) =>
-                            item.product.toString() === productId
-                    );
-
-                    if (!cartItem) {
-                        continue;
-                    }
-
-                    if (cartItem.quantity <= purchasedQuantity) {
-                        cart.items = cart.items.filter(
-                            (item) =>
-                                item.product.toString() !== productId
-                        );
-                    } else {
-                        cartItem.quantity -= purchasedQuantity;
-                    }
-                }
-
-                await cart.save({ session });
-            }
+            // Record coupon usage in the same transaction.
+            // If redemption fails, the database transaction rolls back.
+            await redeemCouponForOrder(
+                currentOrder,
+                session
+            );
 
             currentOrder.payment.razorpayPaymentId =
                 razorpay_payment_id;
@@ -326,10 +356,12 @@ const verifyRazorpayPayment = async (userId, paymentData) => {
     } finally {
         await session.endSession();
     }
+
     return result;
 };
 
-
+// Reconcile a captured payment if normal checkout verification
+// did not complete successfully.
 const reconcileCapturedPayment = async (
     userId,
     orderId,
@@ -355,7 +387,6 @@ const reconcileCapturedPayment = async (
         );
     }
 
-    // Confirm the payment directly with Razorpay.
     const [razorpayOrder, payment] = await Promise.all([
         razorpay.orders.fetch(order.payment.razorpayOrderId),
         razorpay.payments.fetch(razorpayPaymentId),
@@ -383,18 +414,9 @@ const reconcileCapturedPayment = async (
         );
     }
 
-    const quantities = new Map();
-
-    for (const item of order.items) {
-        const productId = item.product.toString();
-
-        quantities.set(
-            productId,
-            (quantities.get(productId) || 0) + item.quantity
-        );
-    }
-
+    const quantities = getOrderQuantities(order);
     const session = await mongoose.startSession();
+
     let result;
 
     try {
@@ -418,7 +440,7 @@ const reconcileCapturedPayment = async (
                 );
             }
 
-            // Make repeated reconciliation safe.
+            // Avoid processing the same successful payment twice.
             if (
                 currentOrder.paymentStatus === "paid" &&
                 currentOrder.inventoryProcessed
@@ -433,8 +455,6 @@ const reconcileCapturedPayment = async (
                 return;
             }
 
-            // A captured payment on a cancelled order needs a refund
-            // or manual reconciliation, not automatic fulfilment.
             if (currentOrder.status === "cancelled") {
                 throw new AppError(
                     "Payment captured for a cancelled order; refund reconciliation is required",
@@ -449,53 +469,17 @@ const reconcileCapturedPayment = async (
                 );
             }
 
-            // Deduct stock atomically, only if sufficient stock remains.
-            for (const [productId, quantity] of quantities) {
-                const update = await Product.updateOne(
-                    {
-                        _id: productId,
-                        stock: { $gte: quantity },
-                    },
-                    {
-                        $inc: { stock: -quantity },
-                    },
-                    { session }
-                );
+            await processInventoryAndCart(
+                currentOrder,
+                session,
+                quantities
+            );
 
-                if (update.modifiedCount !== 1) {
-                    throw new AppError(
-                        `Insufficient stock for product ${productId}. Refund or manual reconciliation is required.`,
-                        409
-                    );
-                }
-            }
-
-            // Remove purchased quantities from the user's cart.
-            const cart = await Cart.findOne({
-                user: userId,
-            }).session(session);
-
-            if (cart) {
-                for (const [productId, purchasedQuantity] of quantities) {
-                    const cartItem = cart.items.find(
-                        (item) =>
-                            item.product.toString() === productId
-                    );
-
-                    if (!cartItem) continue;
-
-                    if (cartItem.quantity <= purchasedQuantity) {
-                        cart.items = cart.items.filter(
-                            (item) =>
-                                item.product.toString() !== productId
-                        );
-                    } else {
-                        cartItem.quantity -= purchasedQuantity;
-                    }
-                }
-
-                await cart.save({ session });
-            }
+            // Use the same redemption rules as normal verification.
+            await redeemCouponForOrder(
+                currentOrder,
+                session
+            );
 
             currentOrder.payment.razorpayPaymentId = payment.id;
             currentOrder.paymentStatus = "paid";
@@ -518,31 +502,8 @@ const reconcileCapturedPayment = async (
     return result;
 };
 
-    // const inspectRazorpayOrder = async (orderId) => {
-    //     const razorpayOrder = await razorpay.orders.fetch(orderId);
-    //     const payments = await razorpay.orders.fetchPayments(orderId);
-
-    //         return {
-    //             order: {
-    //                 id: razorpayOrder.id,
-    //                 status: razorpayOrder.status,
-    //                 amount: razorpayOrder.amount,
-    //                 amount_paid: razorpayOrder.amount_paid,
-    //                 currency: razorpayOrder.currency,
-    //             },
-    //             payments: payments.items.map((payment) => ({
-    //                 id: payment.id,
-    //                 status: payment.status,
-    //                 amount: payment.amount,
-    //                 currency: payment.currency,
-    //                 order_id: payment.order_id,
-    //             })),
-    //         };
-    // };
-
 module.exports = {
     createRazorpayOrder,
     verifyRazorpayPayment,
-    reconcileCapturedPayment
+    reconcileCapturedPayment,
 };
-

@@ -6,6 +6,8 @@ const Address = require("../models/address");
 const AppError = require("../utils/AppError");
 const { validateCoupon } = require("./coupon.service");
 
+
+
 const createOrder = async (userId, orderData) => {
     const cart = await Cart.findOne({
         user: userId,
@@ -27,11 +29,14 @@ const createOrder = async (userId, orderData) => {
         throw new AppError("Address not found", 404);
     }
 
+    const roundMoney = (amount) =>
+        Math.round((amount + Number.EPSILON) * 100) / 100;
+
     let subtotal = 0;
     const orderItems = [];
 
     for (const item of cart.items) {
-        const product = item.product;   
+        const product = item.product;
 
         if (!product) {
             throw new AppError(
@@ -47,6 +52,16 @@ const createOrder = async (userId, orderData) => {
             );
         }
 
+        if (
+            !Number.isInteger(item.quantity) ||
+            item.quantity < 1
+        ) {
+            throw new AppError(
+                `Invalid quantity for ${product.name}`,
+                400
+            );
+        }
+
         if (product.stock < item.quantity) {
             throw new AppError(
                 `Only ${product.stock} units of ${product.name} are available`,
@@ -54,14 +69,16 @@ const createOrder = async (userId, orderData) => {
             );
         }
 
-        const finalPrice =
+        const finalPrice = roundMoney(
             product.price -
-            (product.price * product.discount) / 100;
+            (product.price * (product.discount || 0)) / 100
+        );
 
-        const itemSubtotal =
-            finalPrice * item.quantity;
+        const itemSubtotal = roundMoney(
+            finalPrice * item.quantity
+        );
 
-        subtotal += itemSubtotal;
+        subtotal = roundMoney(subtotal + itemSubtotal);
 
         orderItems.push({
             product: product._id,
@@ -75,10 +92,14 @@ const createOrder = async (userId, orderData) => {
     let discount = 0;
     let couponSnapshot;
 
-    if (orderData.couponCode) {
+    if (
+        typeof orderData.couponCode === "string" &&
+        orderData.couponCode.trim()
+    ) {
         const couponResult = await validateCoupon(
             orderData.couponCode,
-            subtotal
+            subtotal,
+            userId
         );
 
         discount = couponResult.discount;
@@ -91,7 +112,9 @@ const createOrder = async (userId, orderData) => {
         };
     }
 
-    const total = subtotal - discount;
+    const total = roundMoney(
+        Math.max(0, subtotal - discount)
+    );
 
     const shippingAddress = {
         fullName: address.fullName,
@@ -118,6 +141,7 @@ const createOrder = async (userId, orderData) => {
 
     return order;
 };
+
 
 
 const getUserOrders = async (userId, page = 1, limit = 10) => {

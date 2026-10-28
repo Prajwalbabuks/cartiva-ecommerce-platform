@@ -1,15 +1,16 @@
+
 const asyncHandler = require("../utils/asyncHandler");
-const { 
-      createCoupon,
-      getAllCoupons,
-      getCouponById,
-      updateCoupon,
-      deactivateCoupon,
-      validateCoupon,  
-      } = require("../services/coupon.service");
+
+const {
+    createCoupon,
+    getAllCoupons,
+    getCouponById,
+    updateCoupon,
+    deactivateCoupon,
+    validateCoupon,
+} = require("../services/coupon.service");
 
 const addCoupon = asyncHandler(async (req, res) => {
-
     const coupon = await createCoupon(req.body);
 
     res.status(201).json({
@@ -31,7 +32,6 @@ const getCoupons = asyncHandler(async (req, res) => {
 
 const getCoupon = asyncHandler(async (req, res) => {
     const { couponId } = req.params;
-
     const coupon = await getCouponById(couponId);
 
     res.status(200).json({
@@ -42,11 +42,7 @@ const getCoupon = asyncHandler(async (req, res) => {
 
 const editCoupon = asyncHandler(async (req, res) => {
     const { couponId } = req.params;
-
-    const coupon = await updateCoupon(
-        couponId,
-        req.body
-    );
+    const coupon = await updateCoupon(couponId, req.body);
 
     res.status(200).json({
         success: true,
@@ -57,7 +53,6 @@ const editCoupon = asyncHandler(async (req, res) => {
 
 const disableCoupon = asyncHandler(async (req, res) => {
     const { couponId } = req.params;
-
     const coupon = await deactivateCoupon(couponId);
 
     res.status(200).json({
@@ -72,7 +67,8 @@ const checkCoupon = asyncHandler(async (req, res) => {
 
     const result = await validateCoupon(
         code,
-        subtotal
+        subtotal,
+        req.user.userId
     );
 
     res.status(200).json({
@@ -81,8 +77,6 @@ const checkCoupon = asyncHandler(async (req, res) => {
         ...result,
     });
 });
-
-
 
 module.exports = {
     addCoupon,
