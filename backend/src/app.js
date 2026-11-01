@@ -11,6 +11,7 @@ const couponRouter = require("./routers/coupon.route");
 const orderRouter = require("./routers/order.route");
 const paymentRouter = require("./routers/payment.route");
 const reviewRouter = require("./routers/review.route");
+const adminRouter = require("./routers/admin.route");
 const errorMiddleware = require("./middlewares/error.middleware");
 
 
@@ -38,6 +39,8 @@ app.use("/api/v1/coupons", couponRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/payments", paymentRouter);
 app.use("/api/v1/reviews",  reviewRouter);
+//admin 
+app.use("/api/v1/admin", adminRouter);
 // Error handling middleware MUST be last
 app.use(errorMiddleware);
 
