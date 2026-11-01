@@ -1,0 +1,779 @@
+{
+  "info": {
+    "_postman_id": "2745db7d-0a82-4be8-978f-a50637ce3a42",
+    "name": "cartiva",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56869961",
+    "_collection_link": "https://go.postman.co/collection/56869961-2745db7d-0a82-4be8-978f-a50637ce3a42?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Payment",
+      "item": [
+        {
+          "name": "place order in razor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "",
+                "value": ""
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/payments/create-order",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "payments",
+                "create-order"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "payment verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YTliZTgyNDRkYzBlMWJlN2E0ZDk5OTIiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3OTE3MzQ2MzIsImV4cCI6MTc5MTgyMTAzMn0.IWVxKfWmId7QQ4TUlmCUmqtK7JgOnXH0nvhVQC1k6fo"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"orderId\": \"6aaf8f5565105bf77f9d10f2\",\r\n  \"razorpay_order_id\": \"order_TmerrPxtrDVBpm\",\r\n  \"razorpay_payment_id\": \"pay_TmeuE36Pdml7zW\",\r\n  \"razorpay_signature\": \"3446d6f8c2d9f7cc8ca27038069ce4ed1df38c8d4f7ff97a2aa0a3faa51b3bee\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/verify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Review and Ratings",
+      "item": [
+        {
+          "name": "get review",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "",
+            "value": ""
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"prajwal@example.com\",\r\n    \"password\": \"password123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/auth/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "",
+            "value": "",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"prajwal@example.com\",\r\n    \"password\": \"password123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get-categories-by -id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/categories/6aa1b48dcc9dee40e7c4b22c",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "categories",
+            "6aa1b48dcc9dee40e7c4b22c"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get-products",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/products",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "products"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "product",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_1bgp}}",
+            "type": "text"
+          },
+          {
+            "key": "",
+            "value": "",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"name\": \"Sony WH-1000XM6\",\r\n    \"slug\": \"sony-wh-1000xm6\",\r\n    \"description\": \"Premium wireless headphones with industry-leading noise cancellation and immersive sound\",\r\n    \"brand\": \"Sony\",\r\n    \"category\": \"6aa05932d58c9d968428d09a\",\r\n    \"price\": 34999,\r\n    \"discount\": 10,\r\n    \"stock\": 15,\r\n    \"sku\": \"SONY-WH1000XM6-001\",\r\n    \"images\": [\r\n        \"https://example.com/sony-wh1000xm6.jpg\"\r\n    ],\r\n    \"isActive\": true,\r\n    \"isFeatured\": true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/products",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "products"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "update-categories-by -id",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_08eo}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"isActive\": false\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/categories/6aa1b48dcc9dee40e7c4b22c",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "categories",
+            "6aa1b48dcc9dee40e7c4b22c"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get_categories",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/categories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "categories"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "categories",
+      "request": {
+        "auth": {
+          "type": "bearer"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{supabase_service_role_api_key_08eo}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"name\": \"Laptops\",\r\n    \"slug\": \"laptops\",\r\n    \"description\": \"Laptops and notebooks\",\r\n    \"image\": \"https://example.com/laptops.jpg\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/categories",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "categories"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get-me",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_0h4s}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/auth/me",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "wishlist",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_0dwl}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"productId\": \"6aa2f907a66c31b586301653\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/wishlist",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "wishlist"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get-wishlist",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{supabase_service_role_api_key_0dwl}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"quantity\" : 4\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/wishlist/6aa2f907a66c31b586301653/cart",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "wishlist",
+            "6aa2f907a66c31b586301653",
+            "cart"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "address",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_0dwl}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"productId\": \"6aa2f907a66c31b586301653\"\r\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/addresses",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "addresses"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get-address",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_0dwl}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"productId\": \"6aa2f907a66c31b586301653\"\r\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/addresses",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "addresses"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "coupons",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"code\": \"SAVE20\",\r\n  \"discountPercentage\": 20,\r\n  \"minOrderValue\": 1000,\r\n  \"maxDiscount\": 500,\r\n  \"startDate\": \"2026-09-15\",\r\n  \"endDate\": \"2026-09-30\",\r\n  \"usageLimit\": 1000,\r\n  \"perUserLimit\": 1\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/coupons",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "coupons"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get-coupons",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"code\": \"SAVE20\",\r\n  \"discountPercentage\": 20,\r\n  \"minOrderValue\": 1000,\r\n  \"maxDiscount\": 500,\r\n  \"startDate\": \"2026-09-15\",\r\n  \"endDate\": \"2026-09-30\",\r\n  \"usageLimit\": 1000,\r\n  \"perUserLimit\": 1\r\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/coupons",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "coupons"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "orders",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{json_web_token_1582}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"addressId\": \"6aa91a07a1216fa3de5e3c05\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/orders",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "orders"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get-order",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_11w0}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"status\": \"confirmed\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/orders/6aaf8fec65105bf77f9d10f3/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "orders",
+            "6aaf8fec65105bf77f9d10f3",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "cart",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer "
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/cart?",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "cart"
+          ],
+          "query": [
+            {
+              "key": "",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "json_web_token_1bgp",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0rzp",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_08eo",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_057k",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_08eo",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0h4s",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0s6s",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0dwl",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0kga",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_0dwl",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_1582",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_00wf",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_11w0",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_0377",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0n9d",
+      "secret": true
+    },
+    {
+      "key": "json_web_token_01fj",
+      "secret": true
+    }
+  ]
+}

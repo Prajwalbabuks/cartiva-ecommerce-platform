@@ -19,6 +19,7 @@ import {
   House,
   UserRound,
   Heart,
+  LayoutDashboard
 } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
@@ -34,7 +35,7 @@ const navLinkClass = ({ isActive }) =>
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { totalItems = 0 } = useCart();
 
   const location = useLocation();
@@ -153,6 +154,22 @@ export default function Navbar() {
               <span className="hidden max-w-36 truncate text-sm text-gray-600 lg:block">
                 Hi, {accountName}
               </span>
+            )}
+
+            {isAuthenticated && isAdmin && (
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-indigo-50 text-brand"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-brand"
+                  }`
+                }
+              >
+                <LayoutDashboard size={18} />
+                Admin Dashboard
+              </NavLink>
             )}
 
             <Link
@@ -292,7 +309,6 @@ export default function Navbar() {
                   </NavLink>
                 );
               })}
-
             <div className="my-2 border-t border-gray-100" />
 
             {isAuthenticated ? (
