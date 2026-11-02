@@ -17,6 +17,7 @@ import AdminEditProduct from "./pages/admin/AdminEditProduct";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminAddCategory from "./pages/admin/AdminAddCategories";
 import AdminEditCategory from "./pages/admin/AdminEditCategories";
+import AdminOrders from "./pages/admin/AdminOrders";
 
 import Home from "./pages/Home";
 import Products from "./pages/Products";
@@ -134,6 +135,7 @@ export default function App() {
                     <Route path="categories" element={<AdminCategories />} />
                     <Route path="categories/new" element={<AdminAddCategory />}/>
                     <Route path="categories/edit/:id" element={<AdminEditCategory />}/>
+                    <Route path="orders" element={<AdminOrders />} />
                 </Route>
 
                 {/* Not found */}

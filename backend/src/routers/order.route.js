@@ -5,7 +5,9 @@ const {
     getOrders,
     getOrder,
     cancelOrderByUser,
-    updateOrderStatusByAdmin
+    updateOrderStatusByAdmin,
+    getAllOrders,
+    getAdminOrderStatistics
 } = require("../controllers/order.controller");
 
 const { authMiddleware } = require("../middlewares/auth.middleware");
@@ -47,9 +49,23 @@ router.patch(
 );
 
 router.get(
+    "/admin/all",
+    authMiddleware,
+    authorize("admin"),
+    getAllOrders
+);
+
+router.get(
     "/:orderId",
     authMiddleware,
     getOrder
+);
+
+router.get(
+    "/admin/stats",
+    authMiddleware,
+    authorize("admin"),
+    getAdminOrderStatistics
 );
 
 module.exports = router;

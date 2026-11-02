@@ -59,3 +59,28 @@ export const updateAdminCategoryStatus = async (categoryId, isActive) => {
 
   return response.data;
 };
+
+
+// Get all orders for admin
+export const getAdminOrders = async (params = {}) => {
+    const response = await api.get("/orders/admin/all", {
+        params,
+    });
+
+    return response.data;
+};
+
+// Update order status
+export const updateAdminOrderStatus = async (orderId, status) => {
+    const response = await api.patch(`/orders/${orderId}/status`, {
+        status,
+    });
+
+    return response.data;
+};
+
+// Get admin order statistics
+export const getAdminOrderStats = async () => {
+    const response = await api.get("/orders/admin/stats");
+    return response.data;
+};

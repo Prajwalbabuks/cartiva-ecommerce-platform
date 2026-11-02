@@ -171,6 +171,118 @@ const getUserOrders = async (userId, page = 1, limit = 10) => {
     };
 };
 
+
+const getAllOrdersForAdmin = async ({
+    page = 1,
+    limit = 10,
+    status,
+    paymentStatus,
+    search,
+    sort = "newest",
+}) => {
+    const skip = (page - 1) * limit;
+
+    const matchStage = {};
+
+    if (status) {
+        matchStage.status = status;
+    }
+
+    if (paymentStatus) {
+        matchStage.paymentStatus = paymentStatus;
+    }
+
+    const pipeline = [
+        {
+            $match: matchStage,
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "user",
+                foreignField: "_id",
+                as: "user",
+            },
+        },
+        {
+            $unwind: {
+                path: "$user",
+                preserveNullAndEmptyArrays: true,
+            },
+        },
+    ];
+
+    if (search && search.trim()) {
+        const escapedSearch = search.trim().replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&"
+        );
+
+        const searchRegex = new RegExp(escapedSearch, "i");
+
+        const searchConditions = [
+            { "user.name": searchRegex },
+            { "user.email": searchRegex },
+        ];
+
+        if (mongoose.Types.ObjectId.isValid(search.trim())) {
+            searchConditions.push({
+                _id: new mongoose.Types.ObjectId(search.trim()),
+            });
+        }
+
+        pipeline.push({
+            $match: {
+                $or: searchConditions,
+            },
+        });
+    }
+
+    pipeline.push(
+        {
+            $sort: {
+                createdAt: sort === "oldest" ? 1 : -1,
+            },
+        },
+        {
+            $facet: {
+                orders: [
+                    { $skip: skip },
+                    { $limit: limit },
+                    {
+                        $project: {
+                            "user.password": 0,
+                            "user.__v": 0,
+                            "payment.razorpaySignature": 0,
+                        },
+                    },
+                ],
+                totalCount: [
+                    { $count: "total" },
+                ],
+            },
+        }
+    );
+
+    const [result] = await Order.aggregate(pipeline);
+
+    const orders = result?.orders || [];
+    const totalOrders = result?.totalCount?.[0]?.total || 0;
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    return {
+        orders,
+        pagination: {
+            currentPage: page,
+            limit,
+            totalOrders,
+            totalPages,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1,
+        },
+    };
+};
+
 const getOrderById = async (userId, orderId) => {
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
         throw new AppError("Invalid order ID", 400);
@@ -250,10 +362,99 @@ const updateOrderStatus = async (orderId, newStatus) => {
     return order;
 };
 
+// Get order statistics for admin dashboard
+const getAdminOrderStats = async () => {
+    const result = await Order.aggregate([
+        {
+            $group: {
+                _id: null,
+
+                totalOrders: {
+                    $sum: 1,
+                },
+
+                pendingOrders: {
+                    $sum: {
+                        $cond: [
+                            { $eq: ["$status", "pending"] },
+                            1,
+                            0,
+                        ],
+                    },
+                },
+
+                processingOrders: {
+                    $sum: {
+                        $cond: [
+                            { $eq: ["$status", "processing"] },
+                            1,
+                            0,
+                        ],
+                    },
+                },
+
+                deliveredOrders: {
+                    $sum: {
+                        $cond: [
+                            { $eq: ["$status", "delivered"] },
+                            1,
+                            0,
+                        ],
+                    },
+                },
+
+                paidOrders: {
+                    $sum: {
+                        $cond: [
+                            { $eq: ["$paymentStatus", "paid"] },
+                            1,
+                            0,
+                        ],
+                    },
+                },
+
+                totalRevenue: {
+                    $sum: {
+                        $cond: [
+                            { $eq: ["$paymentStatus", "paid"] },
+                            "$total",
+                            0,
+                        ],
+                    },
+                },
+            },
+        },
+        {
+            $project: {
+                _id: 0,
+                totalOrders: 1,
+                pendingOrders: 1,
+                processingOrders: 1,
+                deliveredOrders: 1,
+                paidOrders: 1,
+                totalRevenue: 1,
+            },
+        },
+    ]);
+
+    return (
+        result[0] || {
+            totalOrders: 0,
+            pendingOrders: 0,
+            processingOrders: 0,
+            deliveredOrders: 0,
+            paidOrders: 0,
+            totalRevenue: 0,
+        }
+    );
+};
+
 module.exports = {
     createOrder,
     getUserOrders,
     getOrderById,
     cancelOrder,
     updateOrderStatus,
+    getAllOrdersForAdmin,
+    getAdminOrderStats,
 };
