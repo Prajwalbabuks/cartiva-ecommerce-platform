@@ -12,7 +12,10 @@ const orderRouter = require("./routers/order.route");
 const paymentRouter = require("./routers/payment.route");
 const reviewRouter = require("./routers/review.route");
 const adminRouter = require("./routers/admin.route");
+const adminProductRouter = require("./routers/admin.product.route");
+const adminCategoryRoutes = require("./routers/admin.category.route.js");
 const errorMiddleware = require("./middlewares/error.middleware");
+
 
 
 const app = express();
@@ -20,7 +23,10 @@ const app = express();
 app.use(cors({
     origin: "http://localhost:5173",
 }));
+
+// Body parsing middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
     res.json({
@@ -41,6 +47,8 @@ app.use("/api/v1/payments", paymentRouter);
 app.use("/api/v1/reviews",  reviewRouter);
 //admin 
 app.use("/api/v1/admin", adminRouter);
+app.use("/api/v1/admin/products", adminProductRouter);
+app.use("/api/v1/admin/categories", adminCategoryRoutes);
 // Error handling middleware MUST be last
 app.use(errorMiddleware);
 

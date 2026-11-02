@@ -11,6 +11,12 @@ import Navbar from "./components/Navbar";
 import AdminRoute from "./components/AdminRoute";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProducts from "./pages/admin/AdminProduct";
+import AdminAddProduct from "./pages/admin/AdminAddProduct";
+import AdminEditProduct from "./pages/admin/AdminEditProduct";
+import AdminCategories from "./pages/admin/AdminCategories";
+import AdminAddCategory from "./pages/admin/AdminAddCategories";
+import AdminEditCategory from "./pages/admin/AdminEditCategories";
 
 import Home from "./pages/Home";
 import Products from "./pages/Products";
@@ -24,6 +30,7 @@ import PaymentTest from "./pages/PaymentTest";
 import OrderHistory from "./pages/OrderHistory";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import Wishlist from "./pages/Wishlist";
+
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import GuestRoute from "./components/GuestRoute";
@@ -116,11 +123,17 @@ export default function App() {
                     path="/admin"
                     element={
                         <AdminRoute>
-                            <AdminLayout />
+                        <AdminLayout />
                         </AdminRoute>
                     }
                 >
                     <Route index element={<AdminDashboard />} />
+                    <Route path="products" element={<AdminProducts />} />
+                    <Route path="products/new" element={<AdminAddProduct />} />
+                    <Route path="products/edit/:id" element={<AdminEditProduct />} />
+                    <Route path="categories" element={<AdminCategories />} />
+                    <Route path="categories/new" element={<AdminAddCategory />}/>
+                    <Route path="categories/edit/:id" element={<AdminEditCategory />}/>
                 </Route>
 
                 {/* Not found */}
