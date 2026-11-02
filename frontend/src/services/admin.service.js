@@ -84,3 +84,50 @@ export const getAdminOrderStats = async () => {
     const response = await api.get("/orders/admin/stats");
     return response.data;
 };
+
+
+// ==========================================
+// COUPON MANAGEMENT
+// ==========================================
+
+// Get all coupons
+export const getAdminCoupons = async (params = {}) => {
+    const response = await api.get("/coupons", {
+        params,
+    });
+
+    return response.data;
+};
+
+// Get a single coupon
+export const getAdminCouponById = async (couponId) => {
+    const response = await api.get(`/coupons/${couponId}`);
+
+    return response.data;
+};
+
+// Create coupon
+export const createAdminCoupon = async (couponData) => {
+    const response = await api.post("/coupons", couponData);
+
+    return response.data;
+};
+
+// Update coupon
+export const updateAdminCoupon = async (couponId, couponData) => {
+    const response = await api.patch(
+        `/coupons/${couponId}`,
+        couponData
+    );
+
+    return response.data;
+};
+
+// Deactivate coupon
+export const deactivateAdminCoupon = async (couponId) => {
+    const response = await api.patch(
+        `/coupons/${couponId}/deactivate`
+    );
+
+    return response.data;
+};

@@ -18,6 +18,8 @@ import AdminCategories from "./pages/admin/AdminCategories";
 import AdminAddCategory from "./pages/admin/AdminAddCategories";
 import AdminEditCategory from "./pages/admin/AdminEditCategories";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminCoupons from "./pages/admin/AdminCoupon";   
+import AdminCouponForm from "./pages/admin/AdminCouponForm";
 
 import Home from "./pages/Home";
 import Products from "./pages/Products";
@@ -31,6 +33,7 @@ import PaymentTest from "./pages/PaymentTest";
 import OrderHistory from "./pages/OrderHistory";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import Wishlist from "./pages/Wishlist";
+
 
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -136,6 +139,9 @@ export default function App() {
                     <Route path="categories/new" element={<AdminAddCategory />}/>
                     <Route path="categories/edit/:id" element={<AdminEditCategory />}/>
                     <Route path="orders" element={<AdminOrders />} />
+                    <Route path="coupons" element={<AdminCoupons />} />
+                    <Route path="coupons/add" element={<AdminCouponForm />} />
+                    <Route path="coupons/edit/:id" element={<AdminCouponForm />} />
                 </Route>
 
                 {/* Not found */}
