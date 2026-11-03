@@ -14,15 +14,28 @@ const sendEmail = async ({ to, subject, html }) => {
                     subject,
                     html,
                 }),
+                redirect: "follow",
             }
         );
 
-        const result = await response.json();
+        const responseText = await response.text();
+
+        console.log("Email API status:", response.status);
+        console.log("Email API content type:", response.headers.get("content-type"));
+        console.log("Email API response:", responseText.slice(0, 1000));
+
+        let result;
+
+        try {
+            result = JSON.parse(responseText);
+        } catch {
+            throw new Error(
+                `Google Apps Script returned non-JSON response. Status: ${response.status}. Check Render logs.`
+            );
+        }
 
         if (!response.ok || !result.success) {
-            throw new Error(
-                result.message || "Email delivery failed"
-            );
+            throw new Error(result.message || "Email delivery failed");
         }
 
         console.log("Cartiva email sent successfully:", to);
