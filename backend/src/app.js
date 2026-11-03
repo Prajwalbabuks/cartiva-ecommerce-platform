@@ -22,14 +22,21 @@ const errorMiddleware = require("./middlewares/error.middleware");
 const app = express();
 
 // CORS configuration
+
 const allowedOrigins = [
     "http://localhost:5173",
-    process.env.FRONTEND_URL,
-].filter(Boolean);
+    "https://cartiva-ecommerce-platform.vercel.app",
+];
 
 app.use(
     cors({
-        origin: allowedOrigins,
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error("Not allowed by CORS"));
+        },
     })
 );
 
