@@ -131,3 +131,38 @@ export const deactivateAdminCoupon = async (couponId) => {
 
     return response.data;
 };
+
+
+
+// ================= CUSTOMER MANAGEMENT =================
+
+// Get all customers
+export const getAdminCustomers = async (params = {}) => {
+    const response = await api.get("/admin/customers", {
+        params,
+    });
+
+    return response.data;
+};
+
+// Get customer details
+export const getAdminCustomerById = async (customerId) => {
+    const response = await api.get(
+        `/admin/customers/${customerId}`
+    );
+
+    return response.data;
+};
+
+// Activate or deactivate customer
+export const updateAdminCustomerStatus = async (
+    customerId,
+    isActive
+) => {
+    const response = await api.patch(
+        `/admin/customers/${customerId}/status`,
+        { isActive }
+    );
+
+    return response.data;
+};

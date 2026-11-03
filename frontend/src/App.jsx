@@ -20,6 +20,7 @@ import AdminEditCategory from "./pages/admin/AdminEditCategories";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminCoupons from "./pages/admin/AdminCoupon";   
 import AdminCouponForm from "./pages/admin/AdminCouponForm";
+import AdminCustomers from "./pages/admin/AdminCustomers";
 
 import Home from "./pages/Home";
 import Products from "./pages/Products";
@@ -142,6 +143,7 @@ export default function App() {
                     <Route path="coupons" element={<AdminCoupons />} />
                     <Route path="coupons/add" element={<AdminCouponForm />} />
                     <Route path="coupons/edit/:id" element={<AdminCouponForm />} />
+                    <Route path="customers" element={<AdminCustomers />} />
                 </Route>
 
                 {/* Not found */}

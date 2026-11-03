@@ -18,6 +18,7 @@ import {
     LogOut,
     Store,
     ChevronRight,
+    Home,
 } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
@@ -67,6 +68,11 @@ export default function AdminLayout() {
         navigate("/login", { replace: true });
     };
 
+    const handleGoToHome = () => {
+        navigate("/");
+        setSidebarOpen(false);
+    };
+
     const closeSidebar = () => setSidebarOpen(false);
 
     return (
@@ -87,6 +93,7 @@ export default function AdminLayout() {
                         : "-translate-x-full"
                 }`}
             >
+                {/* SIDEBAR HEADER */}
                 <div className="flex h-16 items-center justify-between border-b border-gray-100 px-5">
                     <NavLink
                         to="/admin"
@@ -116,6 +123,7 @@ export default function AdminLayout() {
                     </button>
                 </div>
 
+                {/* SIDEBAR NAVIGATION */}
                 <div className="px-4 pt-6">
                     <p className="px-3 text-xs font-bold uppercase tracking-wider text-gray-400">
                         Management
@@ -153,7 +161,20 @@ export default function AdminLayout() {
                     </nav>
                 </div>
 
+                {/* SIDEBAR FOOTER */}
                 <div className="mt-auto border-t border-gray-100 p-4">
+
+                    {/* GO TO HOME BUTTON */}
+                    <button
+                        type="button"
+                        onClick={handleGoToHome}
+                        className="mb-3 flex w-full items-center gap-3 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-3 text-sm font-semibold text-brand transition hover:bg-indigo-100"
+                    >
+                        <Home size={19} />
+                        Go to Home
+                    </button>
+
+                    {/* ADMIN PROFILE */}
                     <div className="mb-3 flex items-center gap-3 rounded-xl bg-slate-50 p-3">
                         <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-bold text-brand">
                             {user?.name?.charAt(0)?.toUpperCase() || "A"}
@@ -163,12 +184,14 @@ export default function AdminLayout() {
                             <p className="truncate text-sm font-semibold text-gray-900">
                                 {user?.name || "Administrator"}
                             </p>
+
                             <p className="text-xs text-gray-500">
                                 Administrator
                             </p>
                         </div>
                     </div>
 
+                    {/* LOGOUT BUTTON */}
                     <button
                         type="button"
                         onClick={handleLogout}
@@ -180,7 +203,10 @@ export default function AdminLayout() {
                 </div>
             </aside>
 
+            {/* MAIN CONTENT */}
             <div className="min-h-screen lg:pl-64">
+
+                {/* TOP HEADER */}
                 <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
                     <div className="flex items-center gap-3">
                         <button
@@ -196,6 +222,7 @@ export default function AdminLayout() {
                             <p className="text-sm font-semibold text-gray-900">
                                 Admin Panel
                             </p>
+
                             <p className="hidden text-xs text-gray-500 sm:block">
                                 Manage your Cartiva store
                             </p>
@@ -207,6 +234,7 @@ export default function AdminLayout() {
                     </span>
                 </header>
 
+                {/* PAGE CONTENT */}
                 <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
                     <Outlet />
                 </main>

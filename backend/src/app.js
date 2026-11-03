@@ -14,6 +14,7 @@ const reviewRouter = require("./routers/review.route");
 const adminRouter = require("./routers/admin.route");
 const adminProductRouter = require("./routers/admin.product.route");
 const adminCategoryRoutes = require("./routers/admin.category.route.js");
+const userRoutes = require("./routers/user.route.js");
 const errorMiddleware = require("./middlewares/error.middleware");
 
 
@@ -49,6 +50,8 @@ app.use("/api/v1/reviews",  reviewRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/admin/products", adminProductRouter);
 app.use("/api/v1/admin/categories", adminCategoryRoutes);
+app.use("/api/v1/admin/customers", userRoutes);
+
 // Error handling middleware MUST be last
 app.use(errorMiddleware);
 
