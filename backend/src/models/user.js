@@ -46,10 +46,21 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        verificationOTP: {
+            type: String,
+            default: null,
+            select: false,
+        },
+
+        verificationOTPExpires: {
+            type: Date,
+            default: null,
+            select: false,
+        },
     },
-    {
-        timestamps: true,
-    }
+        {
+            timestamps: true,
+        }
 );
 
 userSchema.pre("save", async function (next) {

@@ -22,6 +22,7 @@ import AdminCoupons from "./pages/admin/AdminCoupon";
 import AdminCouponForm from "./pages/admin/AdminCouponForm";
 import AdminCustomers from "./pages/admin/AdminCustomers";
 
+import VerifyEmail from "./pages/VerifyEmail";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
@@ -101,6 +102,7 @@ export default function App() {
                     <Route element={<GuestRoute />}>
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
+                        <Route path="/verify-email" element={<VerifyEmail />} />
                     </Route>
 
                     {/* Authenticated customer pages */}

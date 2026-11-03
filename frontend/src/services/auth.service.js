@@ -15,3 +15,22 @@ export const getCurrentUser = async () => {
     const response = await api.get("/auth/me");
     return response.data;
 };
+
+// Verify email using OTP
+export const verifyEmail = async (email, otp) => {
+    const response = await api.post("/auth/verify-email", {
+        email,
+        otp,
+    });
+
+    return response.data;
+};
+
+// Resend verification OTP
+export const resendVerificationOTP = async (email) => {
+    const response = await api.post("/auth/resend-verification", {
+        email,
+    });
+
+    return response.data;
+};

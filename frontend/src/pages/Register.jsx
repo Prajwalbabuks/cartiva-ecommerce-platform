@@ -82,12 +82,10 @@ function Register() {
 
       await register(registrationData);
 
-      navigate("/login", {
-        replace: true,
-        state: {
-          message: "Registration successful! Please log in.",
-        },
-      });
+      navigate(
+        `/verify-email?email=${encodeURIComponent(form.email.trim())}`,
+        { replace: true }
+      );
     } catch (err) {
       setError(
         err.response?.data?.message ||

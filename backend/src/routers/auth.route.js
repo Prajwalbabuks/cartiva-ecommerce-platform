@@ -3,7 +3,9 @@ const express = require("express");
 const {
     register,
     login,
-    getMe
+    getMe,
+    verifyEmail,
+    resendVerificationEmail,
 } = require("../controllers/auth.controller");
 
 const validate = require("../middlewares/validate");
@@ -16,6 +18,10 @@ const {
 } = require("../validators/auth.validator.js");
 
 const router = express.Router();
+
+router.post("/verify-email", verifyEmail);
+
+router.post("/resend-verification", resendVerificationEmail);
 
 router.post(
     "/register",
