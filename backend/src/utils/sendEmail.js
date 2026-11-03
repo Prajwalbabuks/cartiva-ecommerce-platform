@@ -1,25 +1,33 @@
 
-const { Resend } = require("resend");
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const sendEmail = async ({ to, subject, html }) => {
     try {
-        const { data, error } = await resend.emails.send({
-            from: "Cartiva <onboarding@resend.dev>",
-            to,
-            subject,
-            html,
-        });
+        const response = await fetch(
+            process.env.GOOGLE_APPS_SCRIPT_URL,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    secret: process.env.GOOGLE_APPS_SCRIPT_SECRET,
+                    to,
+                    subject,
+                    html,
+                }),
+            }
+        );
 
-        if (error) {
-            console.error("Resend email error:", error);
-            throw new Error(error.message || "Failed to send email");
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.message || "Email delivery failed"
+            );
         }
 
-        console.log("Email sent successfully:", data.id);
+        console.log("Cartiva email sent successfully:", to);
 
-        return data;
+        return result;
     } catch (error) {
         console.error("Email sending failed:", error.message);
         throw error;
